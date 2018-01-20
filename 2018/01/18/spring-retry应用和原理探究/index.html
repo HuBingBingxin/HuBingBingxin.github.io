@@ -8,16 +8,16 @@
   <link rel="dns-prefetch" href="http://bingbingxin.com">
   <title>spring-retry应用和原理探究 | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Spring Retry什么时候需要重试? 在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。 只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。  原始重试机制">
+  <meta name="description" content="什么时候需要重试?   在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。 只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。   原始重试机制  12345678try  &amp;#123;   sample.fuck();&amp;#125;  catch (Exception e) &amp;#">
 <meta property="og:type" content="article">
 <meta property="og:title" content="spring-retry应用和原理探究">
 <meta property="og:url" content="http://bingbingxin.com/2018/01/18/spring-retry应用和原理探究/index.html">
 <meta property="og:site_name" content="bingbingxin">
-<meta property="og:description" content="Spring Retry什么时候需要重试? 在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。 只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。  原始重试机制">
-<meta property="og:updated_time" content="2018-01-17T13:48:13.000Z">
+<meta property="og:description" content="什么时候需要重试?   在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。 只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。   原始重试机制  12345678try  &amp;#123;   sample.fuck();&amp;#125;  catch (Exception e) &amp;#">
+<meta property="og:updated_time" content="2018-01-20T09:24:30.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spring-retry应用和原理探究">
-<meta name="twitter:description" content="Spring Retry什么时候需要重试? 在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。 只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。  原始重试机制">
+<meta name="twitter:description" content="什么时候需要重试?   在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。 只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。   原始重试机制  12345678try  &amp;#123;   sample.fuck();&amp;#125;  catch (Exception e) &amp;#">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
   
@@ -177,11 +177,38 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="Spring-Retry"><a href="#Spring-Retry" class="headerlink" title="Spring Retry"></a>Spring Retry</h2><h2 id="什么时候需要重试"><a href="#什么时候需要重试" class="headerlink" title="什么时候需要重试?"></a>什么时候需要重试?</h2><ul>
+        <blockquote>
+<p>什么时候需要重试?</p>
+</blockquote>
+<ul>
 <li>在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。</li>
 <li>只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。</li>
 </ul>
-<h3 id="原始重试机制"><a href="#原始重试机制" class="headerlink" title="原始重试机制"></a>原始重试机制</h3>
+<blockquote>
+<p>原始重试机制</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span>  &#123;</div><div class="line">   sample.fuck();</div><div class="line">&#125;  <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">   logger.error(<span class="string">"xxxx"</span>, e);</div><div class="line">&#125;</div><div class="line"></div><div class="line">循环调用出异常的逻辑</div><div class="line">...</div></pre></td></tr></table></figure>
+<blockquote>
+<p>其他优雅的重试机制</p>
+</blockquote>
+<ul>
+<li>spring-retry 重试机制</li>
+<li>guava-retryer 分离正常和重试逻辑</li>
+</ul>
+<blockquote>
+<p>引入spring-retry</p>
+</blockquote>
+<p>spring-retry项目:This project provides declarative retry support for Spring applications. It is used in Spring Batch(批处理), Spring Integration(事件驱动消息框架), Spring for Apache Hadoop (amongst others).</p>
+<p>在springboot项目中引入, 本项目是基于gradle的管理。下面是build.gradle文件中引入spring-retry的jar包，强调的是需要引入切面相关的_aspect_jar。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">compile(<span class="string">"org.springframework.boot:spring-boot-starter-web"</span>)</div><div class="line">compile (<span class="string">'org.aspectj.aspectjrt:1.8.5'</span>)</div><div class="line">compile (<span class="string">'org.aspectj.aspectjweaver:1.8.5'</span>)</div><div class="line">compile (<span class="string">'org.springframework.retry:spring-retry:1.1.5.RELEASE'</span>)</div><div class="line">compile (<span class="string">'org.springframework:spring-boot-starter-aop'</span>)</div></pre></td></tr></table></figure></p>
+<p>在入口类Application中使用注解@EnableRetry, 打开spring-retry的配置.<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@SpringBootApplication</span></div><div class="line"><span class="meta">@ComponentScan</span></div><div class="line"><span class="meta">@EnableRetry</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</div><div class="line"></div><div class="line">  <span class="meta">@Bean</span></div><div class="line">  <span class="function"><span class="keyword">public</span> FilterRegistrationBean <span class="title">filterRegistrationBean</span><span class="params">()</span> </span>&#123;</div><div class="line">    FilterRegistrationBean registrationBean = <span class="keyword">new</span> FilterRegistrationBean();</div><div class="line">    CharacterEncodingFilter characterEncodingFilter = <span class="keyword">new</span> CharacterEncodingFilter();</div><div class="line">    characterEncodingFilter.setEncoding(<span class="string">"UTF-8"</span>);</div><div class="line">    registrationBean.setFilter(characterEncodingFilter);</div><div class="line">    <span class="keyword">return</span> registrationBean;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">    SpringApplication.run(Application.class, args);</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p>在具体的方法上加上@Retryable, 标示该方法是可以使用重试机制，后面的value我们接下来会讲到<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Retryable</span>(value = &#123;Exception.class&#125;, maxAttempts = <span class="number">2</span>, backoff = <span class="meta">@Backoff</span>(delay = <span class="number">1000</span>, multiplier = <span class="number">2</span>))</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addAndRetry</span><span class="params">(<span class="keyword">long</span> id, String name)</span> <span class="keyword">throws</span> RuntimeException </span>&#123;</div><div class="line">        logger.info(String.format(<span class="string">"id : %s, name: %s"</span>, id, name));</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (id &lt; <span class="number">0</span>)&#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"xxx"</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Recover</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">recover</span><span class="params">(RuntimeException e)</span></span>&#123;</div><div class="line">        logger.info(<span class="string">"进入recover"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Recover</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">recover</span><span class="params">(Exception e)</span> <span class="keyword">throws</span> Exception</span>&#123;</div><div class="line">        logger.info(<span class="string">"Exception, 进入recover"</span>);</div><div class="line">        <span class="keyword">throw</span> e;</div><div class="line"></div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
+<blockquote>
+<p>spring-retry的重试策略</p>
+<p>spring-retry的回退策略</p>
+<p>监听器</p>
+<p>其他应用场景</p>
+</blockquote>
+
       
 
       
