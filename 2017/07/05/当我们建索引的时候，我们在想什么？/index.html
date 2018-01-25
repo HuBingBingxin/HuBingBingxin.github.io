@@ -8,16 +8,16 @@
   <link rel="dns-prefetch" href="http://bingbingxin.com">
   <title>当我们建索引的时候，我们在想什么？ | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="我么首先来看一个联合索引的例子:  12345678910CREATE TABLE `PayRecord` (  `Id` bigint(20) NOT NULL COMMENT &apos;Id主键&apos;,  `UserId` bigint(20) NOT NULL COMMENT &apos;用户Id&apos;,  `Type` int(11) NOT NULL COMMENT &apos;购买类型&apos;,  `GoodId` bigi">
+  <meta name="description" content="我么首先来看一个联合索引的例子:  有一个付款记录表，保存用户的付款信息，表结构如下：12345678910CREATE TABLE `PayRecord` (  `Id` bigint(20) NOT NULL COMMENT &apos;Id主键&apos;,  `UserId` bigint(20) NOT NULL COMMENT &apos;用户Id&apos;,  `Type` int(11) NOT NULL COMME">
 <meta property="og:type" content="article">
 <meta property="og:title" content="当我们建索引的时候，我们在想什么？">
 <meta property="og:url" content="http://bingbingxin.com/2017/07/05/当我们建索引的时候，我们在想什么？/index.html">
 <meta property="og:site_name" content="bingbingxin">
-<meta property="og:description" content="我么首先来看一个联合索引的例子:  12345678910CREATE TABLE `PayRecord` (  `Id` bigint(20) NOT NULL COMMENT &apos;Id主键&apos;,  `UserId` bigint(20) NOT NULL COMMENT &apos;用户Id&apos;,  `Type` int(11) NOT NULL COMMENT &apos;购买类型&apos;,  `GoodId` bigi">
-<meta property="og:updated_time" content="2018-01-25T06:21:41.000Z">
+<meta property="og:description" content="我么首先来看一个联合索引的例子:  有一个付款记录表，保存用户的付款信息，表结构如下：12345678910CREATE TABLE `PayRecord` (  `Id` bigint(20) NOT NULL COMMENT &apos;Id主键&apos;,  `UserId` bigint(20) NOT NULL COMMENT &apos;用户Id&apos;,  `Type` int(11) NOT NULL COMME">
+<meta property="og:updated_time" content="2018-01-25T12:32:13.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="当我们建索引的时候，我们在想什么？">
-<meta name="twitter:description" content="我么首先来看一个联合索引的例子:  12345678910CREATE TABLE `PayRecord` (  `Id` bigint(20) NOT NULL COMMENT &apos;Id主键&apos;,  `UserId` bigint(20) NOT NULL COMMENT &apos;用户Id&apos;,  `Type` int(11) NOT NULL COMMENT &apos;购买类型&apos;,  `GoodId` bigi">
+<meta name="twitter:description" content="我么首先来看一个联合索引的例子:  有一个付款记录表，保存用户的付款信息，表结构如下：12345678910CREATE TABLE `PayRecord` (  `Id` bigint(20) NOT NULL COMMENT &apos;Id主键&apos;,  `UserId` bigint(20) NOT NULL COMMENT &apos;用户Id&apos;,  `Type` int(11) NOT NULL COMME">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
   
@@ -42,7 +42,7 @@
     <canvas id="anm-canvas" class="anm-canvas"></canvas>
     <div class="left-col" q-class="show:isShow">
       
-<div class="overlay" style="background: #4d4d4d"></div>
+<div class="overlay" style="background: #f9e2cd"></div>
 <div class="intrude-less">
 	<header id="header" class="inner">
 		<a href="/" class="profilepic">
@@ -99,7 +99,7 @@
     <div class="mid-col" q-class="show:isShow,hide:isShow|isFalse">
       
 <nav id="mobile-nav">
-  	<div class="overlay js-overlay" style="background: #4d4d4d"></div>
+  	<div class="overlay js-overlay" style="background: #f9e2cd"></div>
 	<div class="btnctn js-mobile-btnctn">
   		<div class="slider-trigger list" q-on="click: openSlider(e)"><i class="icon icon-sort"></i></div>
 	</div>
@@ -180,12 +180,30 @@
         <blockquote>
 <p>我么首先来看一个联合索引的例子:</p>
 </blockquote>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`PayRecord`</span> (</div><div class="line">  <span class="string">`Id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'Id主键'</span>,</div><div class="line">  <span class="string">`UserId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'用户Id'</span>,</div><div class="line">  <span class="string">`Type`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'购买类型'</span>,</div><div class="line">  <span class="string">`GoodId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'商品Id'</span>,</div><div class="line">  <span class="string">`OrderId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'商城订单Id'</span>,</div><div class="line">  <span class="string">`db_create_time`</span> <span class="keyword">timestamp</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">'2000-01-01 00:00:00'</span>,</div><div class="line">  <span class="string">`db_update_time`</span> <span class="keyword">timestamp</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">ON</span> <span class="keyword">UPDATE</span> <span class="keyword">CURRENT_TIMESTAMP</span>,</div><div class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`Id`</span>)</div><div class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COMMENT</span>=<span class="string">'购买详情信息'</span>;</div></pre></td></tr></table></figure>
-<p>这个表是保存用户对商品的付款记录信息表，如果我们有查询select * from PayRecord where UserId = ? and GoodId = ? limit ?;<br>现在如果这张表大概250w的数据行，我们来看下mysql给出的explain:</p>
+<p>有一个付款记录表，保存用户的付款信息，表结构如下：<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`PayRecord`</span> (</div><div class="line">  <span class="string">`Id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'Id主键'</span>,</div><div class="line">  <span class="string">`UserId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'用户Id'</span>,</div><div class="line">  <span class="string">`Type`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'购买类型'</span>,</div><div class="line">  <span class="string">`GoodId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'商品Id'</span>,</div><div class="line">  <span class="string">`OrderId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'商城订单Id'</span>,</div><div class="line">  <span class="string">`db_create_time`</span> <span class="keyword">timestamp</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">'2000-01-01 00:00:00'</span>,</div><div class="line">  <span class="string">`db_update_time`</span> <span class="keyword">timestamp</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">ON</span> <span class="keyword">UPDATE</span> <span class="keyword">CURRENT_TIMESTAMP</span>,</div><div class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`Id`</span>)</div><div class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COMMENT</span>=<span class="string">'购买详情信息'</span>;</div></pre></td></tr></table></figure></p>
+<p>这个表是保存用户对商品的付款记录信息表，如果我们有查询select * from PayRecord where UserId = ? and GoodId = ? limit ?;<br>现在如果这张表大概250w的数据行，我们来看下mysql给出的explain:<br><a id="more"></a></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">id: 1</div><div class="line">select_type:SIMPLE</div><div class="line">table:PayRecord</div><div class="line">partations:NULL</div><div class="line">type:ALL</div><div class="line">possible_keys:NULL</div><div class="line">key:NULL</div><div class="line">key_len:NULL</div><div class="line">ref:NULL</div><div class="line">rows:2509587</div><div class="line">filtered:1.00</div><div class="line">extra:Using where</div></pre></td></tr></table></figure>
-<p>这里并没有建任何的有关的userId和goodId的索引，MySQL扫描的rows数为2509587，执行三次的时间分别为1.23s,1.85s,1.13s。<br>这里我们加上联合索引  <strong><em>alter table payrecord add index <code>uId_gId</code> (<code>userId</code>, <code>goodId</code>); </em></strong><br>再次执行上面的sql语句，同样我们也执行3次，时间平均为0.00s ～ 0.0.1s之间。我们很惊喜的发现表上加上这个索引后对select的时间有很大提升。</p>
+<p>这里并没有建任何的有关的userId和goodId的索引，MySQL扫描的rows数为2509587，执行三次的时间分别为1.23s,1.85s,1.13s。<br>这里我们加上联合索引  <strong><em> alter table payrecord add index <code>uId_gId</code> (<code>userId</code>, <code>goodId</code>); </em></strong><br>再次执行上面的sql语句，同样我们也执行3次，时间平均为0.00s ～ 0.0.1s之间。我们很惊喜的发现表上加上这个索引后对select的时间有很大提升。看下解释器给出的explain</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">id: 1</div><div class="line">select_type:SIMPLE</div><div class="line">table:PayRecord</div><div class="line">partations:NULL</div><div class="line">type:ref</div><div class="line">possible_keys:userId_goodId</div><div class="line">key:userId_goodId</div><div class="line">key_len:18</div><div class="line">ref:const,const</div><div class="line">rows:100</div><div class="line">filtered:100.00</div><div class="line">extra:NULL</div></pre></td></tr></table></figure>
 <blockquote>
 <p>索引为什么要这么加？</p>
+</blockquote>
+<p>看到上面的差别，有好奇心的同学就会有疑惑了，为什么加这个索引会有效，以及为什么这么加？<br>我们先把上面这个索引干掉，加上另一个索引 <strong><em> ALTER TABLE <code>payrecord</code> ADD INDEX <code>userId</code> (<code>user_id</code>); </em></strong>, 我们查询后发现效果和上面的联合索引类似，都是在0.01s左右。看下解释器对这条sql的解析<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">id: 1</div><div class="line">select_type:SIMPLE</div><div class="line">table:PayRecord</div><div class="line">partations:NULL</div><div class="line">type:ref</div><div class="line">possible_keys:userid</div><div class="line">key:userid</div><div class="line">key_len:9</div><div class="line">ref:const</div><div class="line">rows:100</div><div class="line">filtered:10.00</div><div class="line">extra:Using where</div></pre></td></tr></table></figure></p>
+<p>那我们继续折腾把这个索引替换成另一个 <strong><em> ALTER TABLE <code>payrecord</code> ADD INDEX <code>GoodId</code> (<code>good_id</code>); </em></strong>, select 三次大概耗时6.44s,6.92s,6.65s，我们看下explain</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">id: 1</div><div class="line">select_type:SIMPLE</div><div class="line">table:PayRecord</div><div class="line">partations:NULL</div><div class="line">type:ref</div><div class="line">possible_keys:goodid</div><div class="line">key:goodid</div><div class="line">key_len:9</div><div class="line">ref:const</div><div class="line">rows:3594</div><div class="line">filtered:10.00</div><div class="line">extra:Using where</div></pre></td></tr></table></figure>
+<p>看来效果差距很大，按照select 耗时从小到大依次排一下为，uId_gId -&gt; userId -&gt; 无索引 -&gt; goodId, </p>
+<blockquote>
+<p>这里我们插入一点，讲一下这个explain: </p>
+</blockquote>
+<p><strong><em>select_type</em></strong> 代表查询的类型，常见的有simple,primary,union等；</p>
+<p><strong><em>table</em></strong> 为表名，如果用到临时表会用&lt;&gt;表示；</p>
+<p><strong><em>type</em></strong> 从好到差依次为：system，const，eq_ref，ref，fulltext，ref_or_null，unique_subquery，index_subquery，range，index_merge，index，ALL，除了all之外，其他的type都可以使用到索引，除了index_merge之外，其他的type只可以用到一个索引；<br>1：system：表中只有一行数据或者是空表，且只能用于myisam和memory表。如果是Innodb引擎表，type列在这个情况通常都是all或者index<br>2：const：使用唯一索引或者主键，返回记录一定是1行记录的等值where条件时，通常type是const。其他数据库也叫做唯一索引扫描<br>3：eq_ref：出现在要连接过个表的查询计划中，驱动表只返回一行数据，且这行数据是第二个表的主键或者唯一索引，且必须为not null，唯一索引和主键是多列时，只有所有的列都用作比较时才会出现eq_ref<br>4：ref：不像eq_ref那样要求连接顺序，也没有主键和唯一索引的要求，只要使用相等条件检索时就可能出现，常见与辅助索引的等值查找。或者多列主键、唯一索引中，使用第一个列之外的列作为等值查找也会出现，总之，返回数据不唯一的等值查找就可能出现<br>5：fulltext：全文索引检索，要注意，全文索引的优先级很高，若全文索引和普通索引同时存在时，mysql不管代价，优先选择使用全文索引<br>6：ref_or_null：与ref方法类似，只是增加了null值的比较。实际用的不多<br>7：unique_subquery：用于where中的in形式子查询，子查询返回不重复值唯一值<br>8：index_subquery：用于in形式子查询使用到了辅助索引或者in常数列表，子查询可能返回重复值，可以使用索引将子查询去重<br>9：range：索引范围扫描，常见于使用&gt;,&lt;,is null,between ,in ,like等运算符的查询中<br>10：index_merge：表示查询使用了两个以上的索引，最后取交集或者并集，常见and ，or的条件使用了不同的索引，官方排序这个在ref_or_null之后，但是实际上由于要读取所个索引，性能可能大部分时间都不如range<br>11：index：索引全表扫描，把索引从头到尾扫一遍，常见于使用索引列就可以处理不需要读取数据文件的查询、可以使用索引排序或者分组的查询<br>12：all：这个就是全表扫描数据文件，然后再在server层进行过滤返回符合要求的记录</p>
+<p><strong><em>possible_keys</em></strong> 是可能会用到的索引，都会列出来</p>
+<p><strong><em>key</em></strong> 是用到的索引，没有用到就是NULL</p>
+<p><strong><em>key_len</em></strong> 是索引的长度，要注意，mysql的ICP特性使用到的索引不会计入其中。另外，key_len只计算where条件用到的索引长度，而排序和分组就算用到了索引，也不会计算到key_len中</p>
+<p><strong><em>rows</em></strong> 这里是执行计划中估算的扫描行数，不是精确值</p>
+<p><strong><em>filtered</em></strong> 使用explain extended时会出现这个列，5.7之后的版本默认就有这个字段，不需要使用explain extended了。这个字段表示存储引擎返回的数据在server层过滤后，剩下多少满足查询的记录数量的比例，注意是百分比，不是具体记录数</p>
+<blockquote>
 <p>聚簇索引</p>
 <p>非聚簇索引</p>
 </blockquote>
@@ -395,6 +413,14 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
             <input type="checkbox" q-on="click:toggleTag(e)" q-attr="checked:showTags">
           </label>
           <ul class="article-tag-list" q-show="showTags">
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">java</a>
+              </li>
             
             <div class="clearfix"></div>
           </ul>

@@ -9,12 +9,13 @@
   <title>spring-retry应用和原理探究 | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="什么时候需要重试?   在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。 只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。   原始重试机制  12345678try  &amp;#123;   sample.fuck();&amp;#125;  catch (Exception e) &amp;#">
+<meta name="keywords" content="spring,java">
 <meta property="og:type" content="article">
 <meta property="og:title" content="spring-retry应用和原理探究">
 <meta property="og:url" content="http://bingbingxin.com/2018/01/18/spring-retry应用和原理探究/index.html">
 <meta property="og:site_name" content="bingbingxin">
 <meta property="og:description" content="什么时候需要重试?   在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。 只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。   原始重试机制  12345678try  &amp;#123;   sample.fuck();&amp;#125;  catch (Exception e) &amp;#">
-<meta property="og:updated_time" content="2018-01-20T10:38:11.000Z">
+<meta property="og:updated_time" content="2018-01-25T12:35:57.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spring-retry应用和原理探究">
 <meta name="twitter:description" content="什么时候需要重试?   在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。 只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。   原始重试机制  12345678try  &amp;#123;   sample.fuck();&amp;#125;  catch (Exception e) &amp;#">
@@ -42,7 +43,7 @@
     <canvas id="anm-canvas" class="anm-canvas"></canvas>
     <div class="left-col" q-class="show:isShow">
       
-<div class="overlay" style="background: #4d4d4d"></div>
+<div class="overlay" style="background: #f9e2cd"></div>
 <div class="intrude-less">
 	<header id="header" class="inner">
 		<a href="/" class="profilepic">
@@ -99,7 +100,7 @@
     <div class="mid-col" q-class="show:isShow,hide:isShow|isFalse">
       
 <nav id="mobile-nav">
-  	<div class="overlay js-overlay" style="background: #4d4d4d"></div>
+  	<div class="overlay js-overlay" style="background: #f9e2cd"></div>
 	<div class="btnctn js-mobile-btnctn">
   		<div class="slider-trigger list" q-on="click: openSlider(e)"><i class="icon icon-sort"></i></div>
 	</div>
@@ -188,6 +189,7 @@
 <p>原始重试机制</p>
 </blockquote>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span>  &#123;</div><div class="line">   sample.fuck();</div><div class="line">&#125;  <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">   logger.error(<span class="string">"xxxx"</span>, e);</div><div class="line">&#125;</div><div class="line"></div><div class="line">循环调用出异常的逻辑</div><div class="line">...</div></pre></td></tr></table></figure>
+<a id="more"></a>
 <blockquote>
 <p>其他优雅的重试机制</p>
 </blockquote>
@@ -268,6 +270,21 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">spring</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
@@ -449,6 +466,14 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
             <input type="checkbox" q-on="click:toggleTag(e)" q-attr="checked:showTags">
           </label>
           <ul class="article-tag-list" q-show="showTags">
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">java</a>
+              </li>
             
             <div class="clearfix"></div>
           </ul>

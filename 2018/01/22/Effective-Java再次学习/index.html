@@ -8,16 +8,16 @@
   <link rel="dns-prefetch" href="http://bingbingxin.com">
   <title>Effective-Java再次学习 | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="1.将局部变量的作用域最小化   之前的写法很多都是先讲变量定义出来, 定义在开头。但是现在这样做显然已经不合适，会对程序的可读性降低，当我看到这行代码的时候，我已经记不起来这个变量是在哪里定义的，它的具体含义是什么 尽量使用for循环代替while">
+  <meta name="description" content="1.将局部变量的作用域最小化   之前的写法很多都是先讲变量定义出来, 定义在开头。但是现在这样做显然已经不合适，会对程序的可读性降低，当我看到这行代码的时候，我已经记不起来这个变量是在哪里定义的，它的具体含义是什么 尽量使用for循环代替while   2.基本类型优于装箱类型，除非一定要用装箱类型的时候在用   我们先来看一个例子">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Effective-Java再次学习">
 <meta property="og:url" content="http://bingbingxin.com/2018/01/22/Effective-Java再次学习/index.html">
 <meta property="og:site_name" content="bingbingxin">
-<meta property="og:description" content="1.将局部变量的作用域最小化   之前的写法很多都是先讲变量定义出来, 定义在开头。但是现在这样做显然已经不合适，会对程序的可读性降低，当我看到这行代码的时候，我已经记不起来这个变量是在哪里定义的，它的具体含义是什么 尽量使用for循环代替while">
-<meta property="og:updated_time" content="2018-01-22T07:43:49.000Z">
+<meta property="og:description" content="1.将局部变量的作用域最小化   之前的写法很多都是先讲变量定义出来, 定义在开头。但是现在这样做显然已经不合适，会对程序的可读性降低，当我看到这行代码的时候，我已经记不起来这个变量是在哪里定义的，它的具体含义是什么 尽量使用for循环代替while   2.基本类型优于装箱类型，除非一定要用装箱类型的时候在用   我们先来看一个例子">
+<meta property="og:updated_time" content="2018-01-25T12:31:47.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Effective-Java再次学习">
-<meta name="twitter:description" content="1.将局部变量的作用域最小化   之前的写法很多都是先讲变量定义出来, 定义在开头。但是现在这样做显然已经不合适，会对程序的可读性降低，当我看到这行代码的时候，我已经记不起来这个变量是在哪里定义的，它的具体含义是什么 尽量使用for循环代替while">
+<meta name="twitter:description" content="1.将局部变量的作用域最小化   之前的写法很多都是先讲变量定义出来, 定义在开头。但是现在这样做显然已经不合适，会对程序的可读性降低，当我看到这行代码的时候，我已经记不起来这个变量是在哪里定义的，它的具体含义是什么 尽量使用for循环代替while   2.基本类型优于装箱类型，除非一定要用装箱类型的时候在用   我们先来看一个例子">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
   
@@ -42,7 +42,7 @@
     <canvas id="anm-canvas" class="anm-canvas"></canvas>
     <div class="left-col" q-class="show:isShow">
       
-<div class="overlay" style="background: #4d4d4d"></div>
+<div class="overlay" style="background: #f9e2cd"></div>
 <div class="intrude-less">
 	<header id="header" class="inner">
 		<a href="/" class="profilepic">
@@ -99,7 +99,7 @@
     <div class="mid-col" q-class="show:isShow,hide:isShow|isFalse">
       
 <nav id="mobile-nav">
-  	<div class="overlay js-overlay" style="background: #4d4d4d"></div>
+  	<div class="overlay js-overlay" style="background: #f9e2cd"></div>
 	<div class="btnctn js-mobile-btnctn">
   		<div class="slider-trigger list" q-on="click: openSlider(e)"><i class="icon icon-sort"></i></div>
 	</div>
@@ -183,6 +183,42 @@
 <ul>
 <li>之前的写法很多都是先讲变量定义出来, 定义在开头。但是现在这样做显然已经不合适，会对程序的可读性降低，当我看到这行代码的时候，我已经记不起来这个变量是在哪里定义的，它的具体含义是什么</li>
 <li>尽量使用for循环代替while</li>
+</ul>
+<blockquote>
+<p>2.基本类型优于装箱类型，除非一定要用装箱类型的时候在用</p>
+</blockquote>
+<ul>
+<li>我们先来看一个例子<a id="more"></a>
+</li>
+</ul>
+<pre><code class="java">    <span class="keyword">long</span> startTime = System.currentTimeMillis();
+    Long sum = <span class="number">0L</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; <span class="number">999999999</span>; i++){
+        sum+=i;
+    }
+    <span class="keyword">long</span> endTime = System.currentTimeMillis();
+    <span class="keyword">double</span> time = (endTime - startTime) / <span class="number">1000</span>;
+
+    System.out.println(<span class="string">"耗时"</span> + time + <span class="string">" s"</span>);
+    System.out.println(sum);
+
+<span class="comment">////////////////////优雅的分割线////////////////////////    </span>
+
+    <span class="keyword">long</span> startTime = System.currentTimeMillis();
+    <span class="keyword">long</span> sum = <span class="number">0L</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; <span class="number">999999999</span>; i++){
+        sum+=i;
+    }
+    <span class="keyword">long</span> endTime = System.currentTimeMillis();
+    <span class="keyword">double</span> time = (endTime - startTime) / <span class="number">1000</span>;
+
+    System.out.println(<span class="string">"耗时"</span> + time + <span class="string">" s"</span>);
+    System.out.println(sum);
+</code></pre>
+<p>大家来找不同，聪明的你发现了两端代码只有sum变量的定义有差别，这两段不同代码的用时一个是6.3s,另一个是不到0.01s，局部变量Long自动装箱类型导致编译器会不断的装箱拆箱，导致性能明显的下降.（ps:真实代码中不要出现magicNumber）</p>
+<ul>
+<li>在作为集合的元素，map的键值对时要用装箱类型</li>
+<li>注意装箱类型的”==”操作以及NullPointException</li>
 </ul>
 
       
@@ -385,6 +421,14 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
             <input type="checkbox" q-on="click:toggleTag(e)" q-attr="checked:showTags">
           </label>
           <ul class="article-tag-list" q-show="showTags">
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">java</a>
+              </li>
             
             <div class="clearfix"></div>
           </ul>
