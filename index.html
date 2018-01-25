@@ -158,6 +158,60 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Effective-Java再次学习" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/22/Effective-Java再次学习/">Effective-Java再次学习</a>
+    </h1>
+  
+
+        
+        <a href="/2018/01/22/Effective-Java再次学习/" class="archive-article-date">
+  	<time datetime="2018-01-22T15:37:47.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-22</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>1.将局部变量的作用域最小化</p>
+</blockquote>
+<ul>
+<li>之前的写法很多都是先讲变量定义出来, 定义在开头。但是现在这样做显然已经不合适，会对程序的可读性降低，当我看到这行代码的时候，我已经记不起来这个变量是在哪里定义的，它的具体含义是什么</li>
+<li>尽量使用for循环代替while</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/01/22/Effective-Java再次学习/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="post-总结工作中用到的guava场景" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -569,7 +623,20 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <blockquote>
+<p>我么首先来看一个联合索引的例子:</p>
+</blockquote>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`PayRecord`</span> (</div><div class="line">  <span class="string">`Id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'Id主键'</span>,</div><div class="line">  <span class="string">`UserId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'用户Id'</span>,</div><div class="line">  <span class="string">`Type`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'购买类型'</span>,</div><div class="line">  <span class="string">`GoodId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'商品Id'</span>,</div><div class="line">  <span class="string">`OrderId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'商城订单Id'</span>,</div><div class="line">  <span class="string">`db_create_time`</span> <span class="keyword">timestamp</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">'2000-01-01 00:00:00'</span>,</div><div class="line">  <span class="string">`db_update_time`</span> <span class="keyword">timestamp</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">ON</span> <span class="keyword">UPDATE</span> <span class="keyword">CURRENT_TIMESTAMP</span>,</div><div class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`Id`</span>)</div><div class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COMMENT</span>=<span class="string">'购买详情信息'</span>;</div></pre></td></tr></table></figure>
+<p>这个表是保存用户对商品的付款记录信息表，如果我们有查询select * from PayRecord where UserId = ? and GoodId = ? limit ?;<br>现在如果这张表大概250w的数据行，我们来看下mysql给出的explain:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">id: 1</div><div class="line">select_type:SIMPLE</div><div class="line">table:PayRecord</div><div class="line">partations:NULL</div><div class="line">type:ALL</div><div class="line">possible_keys:NULL</div><div class="line">key:NULL</div><div class="line">key_len:NULL</div><div class="line">ref:NULL</div><div class="line">rows:2509587</div><div class="line">filtered:1.00</div><div class="line">extra:Using where</div></pre></td></tr></table></figure>
+<p>这里并没有建任何的有关的userId和goodId的索引，MySQL扫描的rows数为2509587，执行三次的时间分别为1.23s,1.85s,1.13s。<br>这里我们加上联合索引  <strong><em>alter table payrecord add index <code>uId_gId</code> (<code>userId</code>, <code>goodId</code>); </em></strong><br>再次执行上面的sql语句，同样我们也执行3次，时间平均为0.00s ～ 0.0.1s之间。我们很惊喜的发现表上加上这个索引后对select的时间有很大提升。</p>
+<blockquote>
+<p>索引为什么要这么加？</p>
+<p>聚簇索引</p>
+<p>非聚簇索引</p>
+</blockquote>
+<p>我们一直致力优化我们的系统成为”三星系统”，最后愿我们都能成为Database的命运之神～</p>
+
       
 
       
