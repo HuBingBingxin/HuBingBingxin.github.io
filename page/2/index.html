@@ -158,6 +158,175 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-log4j2的尝试" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/18/log4j2的尝试/">log4j2的尝试</a>
+    </h1>
+  
+
+        
+        <a href="/2018/01/18/log4j2的尝试/" class="archive-article-date">
+  	<time datetime="2018-01-17T21:17:50.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-17</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/01/18/log4j2的尝试/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-spring-retry应用和原理探究" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/18/spring-retry应用和原理探究/">spring-retry应用和原理探究</a>
+    </h1>
+  
+
+        
+        <a href="/2018/01/18/spring-retry应用和原理探究/" class="archive-article-date">
+  	<time datetime="2018-01-17T21:13:17.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-17</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>什么时候需要重试?</p>
+</blockquote>
+<ul>
+<li>在远程调用失败， 定义重试策略时需要定义需重试的异常（如因远程调用失败的可以重试、而因入参校对失败不应该重试）。</li>
+<li>只读操作可以重试， 幂等写操作可以重试， 但是非幂等写操作不能重试， 重试可能导致脏写， 或产生重复数据。</li>
+</ul>
+<blockquote>
+<p>原始重试机制</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span>  &#123;</div><div class="line">   sample.fuck();</div><div class="line">&#125;  <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">   logger.error(<span class="string">"xxxx"</span>, e);</div><div class="line">&#125;</div><div class="line"></div><div class="line">循环调用出异常的逻辑</div><div class="line">...</div></pre></td></tr></table></figure>
+        
+          <a class="article-more-a" href="/2018/01/18/spring-retry应用和原理探究/#more">more >></a>
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">java</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">spring</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/01/18/spring-retry应用和原理探究/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-Hbase入门" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/11/03/Hbase入门/">Hbase入门</a>
+    </h1>
+  
+
+        
+        <a href="/2017/11/03/Hbase入门/" class="archive-article-date">
+  	<time datetime="2017-11-03T10:58:21.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-11-03</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/11/03/Hbase入门/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="post-Java泛型擦除" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -403,6 +572,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
               </li>
              
               <li class="article-tag-list-item">
