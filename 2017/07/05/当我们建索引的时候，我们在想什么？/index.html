@@ -14,7 +14,7 @@
 <meta property="og:url" content="http://bingbingxin.com/2017/07/05/当我们建索引的时候，我们在想什么？/index.html">
 <meta property="og:site_name" content="bingbingxin">
 <meta property="og:description" content="我么首先来看一个联合索引的例子:  有一个付款记录表，保存用户的付款信息，表结构如下：12345678910CREATE TABLE `PayRecord` (  `Id` bigint(20) NOT NULL COMMENT &apos;Id主键&apos;,  `UserId` bigint(20) NOT NULL COMMENT &apos;用户Id&apos;,  `Type` int(11) NOT NULL COMME">
-<meta property="og:updated_time" content="2018-01-25T12:32:13.000Z">
+<meta property="og:updated_time" content="2018-02-27T09:32:52.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="当我们建索引的时候，我们在想什么？">
 <meta name="twitter:description" content="我么首先来看一个联合索引的例子:  有一个付款记录表，保存用户的付款信息，表结构如下：12345678910CREATE TABLE `PayRecord` (  `Id` bigint(20) NOT NULL COMMENT &apos;Id主键&apos;,  `UserId` bigint(20) NOT NULL COMMENT &apos;用户Id&apos;,  `Type` int(11) NOT NULL COMME">
@@ -204,9 +204,21 @@
 <p><strong><em>rows</em></strong> 这里是执行计划中估算的扫描行数，不是精确值</p>
 <p><strong><em>filtered</em></strong> 使用explain extended时会出现这个列，5.7之后的版本默认就有这个字段，不需要使用explain extended了。这个字段表示存储引擎返回的数据在server层过滤后，剩下多少满足查询的记录数量的比例，注意是百分比，不是具体记录数</p>
 <blockquote>
+<p>联合索引建立的顺序</p>
+</blockquote>
+<ul>
+<li>上面我们加了很多种索引的顺序，实际的效果我们也看到了，那我们讲一下联合索引的顺序问题，这里有一个标准来判断，当有(key1, key2)联合索引要添加的时候我们来执行下面的sql语句<br>select count(DISTINCT key1)/count(<em>), count(DISTINCT key2)/count(</em>) from tableName;<br>继续上面的例子sql语句变为<br><strong><em> SELECT count(DISTINCT user_id)/count(id) as num1, count(DISTINCT good_id)/count(id) as num2 from payrecord; </em></strong> 结果是</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">num1 0.0287</div><div class="line">num2 0.0001</div></pre></td></tr></table></figure>
+<p>那我们给出的建议就是(<code>user_id</code>, <code>good_id</code>)这个索引的顺序, 由于MySQL默认的存储引擎是InnoDB，这样会使索引的区分度较大，我们应该依据字段的全局基数和选择性, 而不是字段的某个具体的值来确定</p>
+<blockquote>
 <p>聚簇索引</p>
+</blockquote>
+<p>聚簇索引，实际存储的循序结构与数据存储的物理机构是一致的，所以通常来说物理顺序结构只有一种，那么一个表的聚簇索引也只能有一个，通常默认都是主键，设置了主键，系统默认就为你加上了聚簇索引，当然有人说我不想拿主键作为聚簇索引，我需要用其他字段作为索引，当然这也是可以的，这就需要你在设置主键之前自己手动的先添加上唯一的聚簇索引，然后再设置主键，这样就木有问题啦。<br>总而言之，聚簇索引是顺序结构与数据存储物理结构一致的一种索引，并且一个表的聚簇索引只能有唯一的一条</p>
+<blockquote>
 <p>非聚簇索引</p>
 </blockquote>
+<p>非聚簇索引记录的物理顺序与逻辑顺序没有必然的联系，与数据的存储物理结构没有关系；一个表对应的非聚簇索引可以有多条，根据不同列的约束可以建立不同要求的非聚簇索引</p>
 <p>我们一直致力优化我们的系统成为”三星系统”，最后愿我们都能成为Database的命运之神～</p>
 
       
@@ -415,6 +427,14 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">redis</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">java</a>
               </li>
              
@@ -424,6 +444,30 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">spring</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">memcache</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">server</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">面试</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">Java服务端</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
               </li>
             
             <div class="clearfix"></div>
@@ -475,7 +519,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
         <ul class="search-ul">
           
             <li class="search-li">
-              <a href="http://localhost:4000/" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>友情链接1</a>
+              <a href="https://sherrywu0917.github.io/" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>sherry</a>
             </li>
           
             <li class="search-li">

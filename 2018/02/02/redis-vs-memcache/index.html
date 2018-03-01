@@ -8,16 +8,19 @@
   <link rel="dns-prefetch" href="http://bingbingxin.com">
   <title>redis vs memcache | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="java,mysql,linux,kafka,spring,mybatis,springboot">
+  <meta name="description" content="一般的情况   Redis和Memcache都是将数据存放在内存中，都是内存数据库。不过memcache还可用于缓存其他东西，例如图片、视频等等 虚拟内存–Redis当物理内存用完时，可以将一些很久没用到的value 交换到磁盘 分布式–设定memcache集群，利用magent做一主多从;redis可以做一主多从。都可以一主一从 存储数据安全–memcache挂掉后，数据没了；redis可以">
+<meta name="keywords" content="redis,java,memcache,server">
 <meta property="og:type" content="article">
 <meta property="og:title" content="redis vs memcache">
 <meta property="og:url" content="http://bingbingxin.com/2018/02/02/redis-vs-memcache/index.html">
 <meta property="og:site_name" content="bingbingxin">
-<meta property="og:description" content="java,mysql,linux,kafka,spring,mybatis,springboot">
-<meta property="og:updated_time" content="2018-02-01T09:16:02.000Z">
+<meta property="og:description" content="一般的情况   Redis和Memcache都是将数据存放在内存中，都是内存数据库。不过memcache还可用于缓存其他东西，例如图片、视频等等 虚拟内存–Redis当物理内存用完时，可以将一些很久没用到的value 交换到磁盘 分布式–设定memcache集群，利用magent做一主多从;redis可以做一主多从。都可以一主一从 存储数据安全–memcache挂掉后，数据没了；redis可以">
+<meta property="og:image" content="http://p4.music.126.net/g-8VRzVii2vCVpCEfVDvew==/109951163166210073.jpg">
+<meta property="og:updated_time" content="2018-02-27T08:58:26.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="redis vs memcache">
-<meta name="twitter:description" content="java,mysql,linux,kafka,spring,mybatis,springboot">
+<meta name="twitter:description" content="一般的情况   Redis和Memcache都是将数据存放在内存中，都是内存数据库。不过memcache还可用于缓存其他东西，例如图片、视频等等 虚拟内存–Redis当物理内存用完时，可以将一些很久没用到的value 交换到磁盘 分布式–设定memcache集群，利用magent做一主多从;redis可以做一主多从。都可以一主一从 存储数据安全–memcache挂掉后，数据没了；redis可以">
+<meta name="twitter:image" content="http://p4.music.126.net/g-8VRzVii2vCVpCEfVDvew==/109951163166210073.jpg">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
   
@@ -177,7 +180,62 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <p><img src="http://p4.music.126.net/g-8VRzVii2vCVpCEfVDvew==/109951163166210073.jpg" alt="Alt text"></p>
+<blockquote>
+<p>一般的情况</p>
+</blockquote>
+<ul>
+<li>Redis和Memcache都是将数据存放在内存中，都是内存数据库。不过memcache还可用于缓存其他东西，例如图片、视频等等</li>
+<li>虚拟内存–Redis当物理内存用完时，可以将一些很久没用到的value 交换到磁盘</li>
+<li>分布式–设定memcache集群，利用magent做一主多从;redis可以做一主多从。都可以一主一从</li>
+<li>存储数据安全–memcache挂掉后，数据没了；redis可以定期保存到磁盘（持久化）</li>
+<li>灾难恢复–memcache挂掉后，数据不可恢复; redis数据丢失后可以通过aof恢复</li>
+<li>Redis支持数据的备份，即master-slave模式的数据备份 </li>
+</ul>
+<a id="more"></a>
+<blockquote>
+<p>数据结构的差别</p>
+</blockquote>
+<ul>
+<li>redis可以拥有丰富的数据结构</li>
+<li>memcache一般是对于map的数据转成字符串, 保存序列化之后的数据，取用的时候在反序列化出来</li>
+</ul>
+<blockquote>
+<p>命令的不同</p>
+</blockquote>
+<ul>
+<li>redis存取的命令是串行的，同一时间上不能并发执行，redis有特殊的命令pipeline管道</li>
+<li>memcahce是并行的，同一时间上可以有很多命令请求</li>
+</ul>
+<blockquote>
+<p>架构上的不同</p>
+</blockquote>
+<ul>
+<li>redis的集群一般是主从服务</li>
+<li>memcache一般是集群服务</li>
+</ul>
+<blockquote>
+<p>可用性（单点问题）</p>
+</blockquote>
+<ul>
+<li>redis在遇到热门数据的时候需要手动hash sharding后分布在不同的节点上</li>
+<li>memcache 采用依赖成熟的hash或者环状的算法，解决单点故障引起的抖动问题</li>
+</ul>
+<blockquote>
+<p>数据一致性</p>
+</blockquote>
+<ul>
+<li>memcache 在并发场景下，用cas(版本号的概念)保证一致性</li>
+<li>redis事务支持比较弱，只能保证事务中的每个操作连续执行</li>
+</ul>
+<blockquote>
+<p>应用场景</p>
+</blockquote>
+<ul>
+<li>redis：数据量较小的更性能操作和运算上</li>
+<li>memcache：用于在动态系统中减少数据库负载，提升性能;做缓存，提高性能（适合读多写少，对于数据量比较大，可以采用sharding）</li>
+</ul>
+
       
 
       
@@ -206,6 +264,29 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">redis</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">java</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">memcache</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">server</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
@@ -389,6 +470,14 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">redis</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">java</a>
               </li>
              
@@ -398,6 +487,30 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">spring</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">memcache</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">server</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">面试</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">Java服务端</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
               </li>
             
             <div class="clearfix"></div>
@@ -449,7 +562,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
         <ul class="search-ul">
           
             <li class="search-li">
-              <a href="http://localhost:4000/" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>友情链接1</a>
+              <a href="https://sherrywu0917.github.io/" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>sherry</a>
             </li>
           
             <li class="search-li">
