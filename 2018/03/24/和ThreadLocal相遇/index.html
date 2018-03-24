@@ -8,18 +8,18 @@
   <link rel="dns-prefetch" href="http://bingbingxin.com">
   <title>和ThreadLocal相遇 | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="ThreaadLocal是什么   ThreaadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据  放出ThreadLocal的set &amp;amp; get的源码   12345678public void set(T value) &amp;#123;    Thread t = Thread.currentThread();    ThreadLo">
-<meta name="keywords" content="Java">
+  <meta name="description" content="ThreadLocal是什么   ThreadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据  放出ThreadLocal的set &amp;amp; get的源码   12345678public void set(T value) &amp;#123;    Thread t = Thread.currentThread();    ThreadLoca">
+<meta name="keywords" content="Java,ThreadLocal">
 <meta property="og:type" content="article">
 <meta property="og:title" content="和ThreadLocal相遇">
 <meta property="og:url" content="http://bingbingxin.com/2018/03/24/和ThreadLocal相遇/index.html">
 <meta property="og:site_name" content="bingbingxin">
-<meta property="og:description" content="ThreaadLocal是什么   ThreaadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据  放出ThreadLocal的set &amp;amp; get的源码   12345678public void set(T value) &amp;#123;    Thread t = Thread.currentThread();    ThreadLo">
+<meta property="og:description" content="ThreadLocal是什么   ThreadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据  放出ThreadLocal的set &amp;amp; get的源码   12345678public void set(T value) &amp;#123;    Thread t = Thread.currentThread();    ThreadLoca">
 <meta property="og:image" content="http://p4.music.126.net/TmxRoLwmEI-J-aamYlzvtQ==/109951163204787464.jpg">
-<meta property="og:updated_time" content="2018-03-24T06:55:51.000Z">
+<meta property="og:updated_time" content="2018-03-24T07:00:36.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="和ThreadLocal相遇">
-<meta name="twitter:description" content="ThreaadLocal是什么   ThreaadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据  放出ThreadLocal的set &amp;amp; get的源码   12345678public void set(T value) &amp;#123;    Thread t = Thread.currentThread();    ThreadLo">
+<meta name="twitter:description" content="ThreadLocal是什么   ThreadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据  放出ThreadLocal的set &amp;amp; get的源码   12345678public void set(T value) &amp;#123;    Thread t = Thread.currentThread();    ThreadLoca">
 <meta name="twitter:image" content="http://p4.music.126.net/TmxRoLwmEI-J-aamYlzvtQ==/109951163204787464.jpg">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
@@ -181,10 +181,10 @@
     <div class="article-entry" itemprop="articleBody">
       
         <blockquote>
-<p>ThreaadLocal是什么</p>
+<p>ThreadLocal是什么</p>
 </blockquote>
 <ul>
-<li><p>ThreaadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据</p>
+<li><p>ThreadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据</p>
 </li>
 <li><p>放出ThreadLocal的set &amp; get的源码</p>
 </li>
@@ -193,10 +193,10 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> T <span class="title">get</span><span class="params">()</span> </span>&#123;</div><div class="line">    Thread t = Thread.currentThread();</div><div class="line">    ThreadLocalMap map = getMap(t);</div><div class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>) &#123;</div><div class="line">        ThreadLocalMap.Entry e = map.getEntry(<span class="keyword">this</span>);</div><div class="line">        <span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</div><div class="line">            T result = (T)e.value;</div><div class="line">            <span class="keyword">return</span> result;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> setInitialValue();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <a id="more"></a>
 <blockquote>
-<p>ThreaadLocalMap</p>
+<p>ThreadLocalMap</p>
 </blockquote>
 <ul>
-<li>ThreaadLocalMap是ThreadLocal的一个静态内部类，但是它并没有实现Map接口</li>
+<li>ThreadLocalMap是ThreadLocal的一个静态内部类，但是它并没有实现Map接口</li>
 </ul>
 <p>在ThreadLoalMap中，也是初始化一个大小16的Entry数组，Entry对象用来保存每一个key-value键值对，只不过这里的key永远都是ThreadLocal对象，通过ThreadLocal对象的set方法，结果把ThreadLocal对象自己当做key，放进了ThreadLoalMap中</p>
 <p><img src="http://p4.music.126.net/TmxRoLwmEI-J-aamYlzvtQ==/109951163204787464.jpg" alt="Alt text"></p>
@@ -254,6 +254,10 @@
 			 
         		<li class="article-tag-list-item">
         			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Java</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">ThreadLocal</a>
         		</li>
       		
 		</ul>
@@ -470,6 +474,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
