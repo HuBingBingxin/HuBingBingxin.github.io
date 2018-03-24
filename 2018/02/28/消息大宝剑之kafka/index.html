@@ -15,12 +15,14 @@
 <meta property="og:url" content="http://bingbingxin.com/2018/02/28/消息大宝剑之kafka/index.html">
 <meta property="og:site_name" content="bingbingxin">
 <meta property="og:description" content="为何使用消息系统   解耦在项目启动之初来预测将来项目会碰到什么需求，是极其困难的。消息系统在处理过程中间插入了一个隐含的、基于数据的接口层，两边的处理过程都要实现这一接口。这允许你独立的扩展或修改两边的处理过程，只要确保它们遵守同样的接口约束 冗余有些情况下，处理数据的过程会失败。除非数据被持久化，否则将造成丢失。消息队列把数据进行持久化直到它们已经被完全处理，通过这一方式规避了数据丢失风险。">
-<meta property="og:image" content="https://images2015.cnblogs.com/blog/897247/201610/897247-20161012133845281-1066342716.png">
-<meta property="og:updated_time" content="2018-03-01T11:50:15.000Z">
+<meta property="og:image" content="http://p4.music.126.net/CQwCS3m4B0MNzsWjDHaUeA==/109951163170749163.jpg">
+<meta property="og:image" content="http://p4.music.126.net/BhVHZaVg2f1fZDxhYNdm3g==/109951163170794286.jpg">
+<meta property="og:image" content="http://p4.music.126.net/tt0Vv-Wh0gxa4MHXl6uf-g==/109951163170754277.jpg">
+<meta property="og:updated_time" content="2018-03-06T11:51:24.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="消息大宝剑之kafka">
 <meta name="twitter:description" content="为何使用消息系统   解耦在项目启动之初来预测将来项目会碰到什么需求，是极其困难的。消息系统在处理过程中间插入了一个隐含的、基于数据的接口层，两边的处理过程都要实现这一接口。这允许你独立的扩展或修改两边的处理过程，只要确保它们遵守同样的接口约束 冗余有些情况下，处理数据的过程会失败。除非数据被持久化，否则将造成丢失。消息队列把数据进行持久化直到它们已经被完全处理，通过这一方式规避了数据丢失风险。">
-<meta name="twitter:image" content="https://images2015.cnblogs.com/blog/897247/201610/897247-20161012133845281-1066342716.png">
+<meta name="twitter:image" content="http://p4.music.126.net/CQwCS3m4B0MNzsWjDHaUeA==/109951163170749163.jpg">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
   
@@ -186,7 +188,7 @@
 <ul>
 <li>解耦<br>在项目启动之初来预测将来项目会碰到什么需求，是极其困难的。消息系统在处理过程中间插入了一个隐含的、基于数据的接口层，两边的处理过程都要实现这一接口。这允许你独立的扩展或修改两边的处理过程，只要确保它们遵守同样的接口约束</li>
 <li>冗余<br>有些情况下，处理数据的过程会失败。除非数据被持久化，否则将造成丢失。消息队列把数据进行持久化直到它们已经被完全处理，通过这一方式规避了数据丢失风险。许多消息队列所采用的”插入-获取-删除”范式中，在把一个消息从队列中删除之前，需要你的处理系统明确的指出该消息已经被处理完毕，从而确保你的数据被安全的保存直到你使用完毕</li>
-<li>扩展性<br>因为消息队列解耦了你的处理过程，所以增大消息入队和处理的频率是很容易的，只要另外增加处理过程即可。不需要改变代码、不需要调节参数。扩展就像调大电力按钮一样简单</li>
+<li>扩展性<br>因为消息队列解耦了你的处理过程，所以增大消息入队和处理的频率是很容易的，只要另外增加处理过程即可。不需要改变代码、不需要调节参数。扩展就像调大电力按钮一样简单<a id="more"></a></li>
 <li>灵活性 &amp; 峰值处理能力<br>在访问量剧增的情况下，应用仍然需要继续发挥作用，但是这样的突发流量并不常见；如果为以能处理这类峰值访问为标准来投入资源随时待命无疑是巨大的浪费。使用消息队列能够使关键组件顶住突发的访问压力，而不会因为突发的超负荷的请求而完全崩溃</li>
 <li>可恢复性</li>
 <li>顺序保证<br>在大多使用场景下，数据处理的顺序都很重要。大部分消息队列本来就是排序的，并且能保证数据会按照特定的顺序来处理。Kafka保证一个Partition内的消息的有序性</li>
@@ -205,8 +207,39 @@
 <li>Scale out：支持在线水平扩展</li>
 </ul>
 <blockquote>
-<p>kafka的拓扑结构图<br><img src="https://images2015.cnblogs.com/blog/897247/201610/897247-20161012133845281-1066342716.png" alt="Alt text"></p>
+<p>kafka的拓扑结构图</p>
 </blockquote>
+<p><img src="http://p4.music.126.net/CQwCS3m4B0MNzsWjDHaUeA==/109951163170749163.jpg" alt="Alt text"></p>
+<ul>
+<li><p>Topic &amp; Partition<br>Topic在逻辑上可以被认为是一个queue，每条消费都必须指定它的Topic，可以简单理解为必须指明把这条消息放进哪个queue里。为了使得Kafka的吞吐率可以线性提高，物理上把Topic分成一个或多个Partition，每个Partition在物理上对应一个文件夹，该文件夹下存储这个Partition的所有消息和索引文件</p>
+</li>
+<li><p>Consumer Group<br>kafka 的分配单位是 patition。每个 consumer 都属于一个 group，一个 partition 只能被同一个 group 内的一个 consumer 所消费（也就保障了一个消息只能被 group 内的一个 consuemr 所消费），但是多个 group 可以同时消费这个 partition。<br>kafka 的设计目标之一就是同时实现离线处理和实时处理，根据这一特性，可以使用 spark/Storm 这些实时处理系统对消息在线处理，同时使用 Hadoop 批处理系统进行离线处理，还可以将数据备份到另一个数据中心，只需要保证这三者属于不同的 consumer group<br><img src="http://p4.music.126.net/BhVHZaVg2f1fZDxhYNdm3g==/109951163170794286.jpg" alt="Alt text"> </p>
+</li>
+</ul>
+<blockquote>
+<p>producer发布消息</p>
+</blockquote>
+<ul>
+<li>写入方式，producer 采用 push 模式将消息发布到 broker，每条消息都被 append 到 patition 中，属于顺序写磁盘（顺序写磁盘效率比随机写内存要高，保障 kafka 吞吐率</li>
+<li>消息路由，producer 发送消息到 broker 时，会根据分区算法选择将其存储到哪一个 partition。其路由机制为<ul>
+<li>指定了 patition，则直接使用</li>
+<li>未指定 patition 但指定 key，通过对 key 的 value 进行hash 选出一个 patition</li>
+<li>patition 和 key 都未指定，使用轮询选出一个patition</li>
+</ul>
+</li>
+<li>partition的相关代码</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">partition</span><span class="params">(String topic, Object key, <span class="keyword">byte</span>[] keyBytes, Object value, <span class="keyword">byte</span>[] valueBytes, Cluster cluster)</span> </span>&#123;</div><div class="line">     List partitions = cluster.partitionsForTopic(topic);</div><div class="line">     <span class="keyword">int</span> numPartitions = partitions.size();</div><div class="line">     <span class="keyword">if</span>(keyBytes == <span class="keyword">null</span>) &#123;</div><div class="line">         <span class="keyword">int</span> nextValue = <span class="keyword">this</span>.counter.getAndIncrement();</div><div class="line">         List availablePartitions = cluster.availablePartitionsForTopic(topic);</div><div class="line">         <span class="keyword">if</span>(availablePartitions.size() &gt; <span class="number">0</span>) &#123;</div><div class="line">             <span class="keyword">int</span> part = toPositive(nextValue) % availablePartitions.size();</div><div class="line">             <span class="keyword">return</span> ((PartitionInfo)availablePartitions.get(part)).partition();</div><div class="line">         &#125; <span class="keyword">else</span> &#123;</div><div class="line">             <span class="keyword">return</span> toPositive(nextValue) % numPartitions;</div><div class="line">         &#125;</div><div class="line">     &#125; <span class="keyword">else</span> &#123;</div><div class="line">         <span class="keyword">return</span> toPositive(Utils.murmur2(keyBytes)) % numPartitions;</div><div class="line">     &#125;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">partition</span><span class="params">(String topic, Object key, <span class="keyword">byte</span>[] bytes, Object o1, <span class="keyword">byte</span>[] valueBytes, Cluster cluster)</span> </span>&#123;</div><div class="line">    List&lt;PartitionInfo&gt; availablePartitionsForTopic = cluster.availablePartitionsForTopic(topic);</div><div class="line">    ArrayList&lt;Integer&gt; values = Lists.newArrayList();</div><div class="line">    <span class="keyword">for</span>(PartitionInfo par : availablePartitionsForTopic)&#123;</div><div class="line">        <span class="keyword">int</span> partition = par.partition();</div><div class="line">        values.add(partition);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> Math.abs(key.hashCode()) % values.size();</div><div class="line">    <span class="comment">//根据key的哈希值来得到一个分区号，哈希值相同的消息总会被哈希到同一个partition中被某一台机器中运行的Consumer消费，从而有效控制数据库的并发访问量</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>消息写入</p>
+</blockquote>
+<p><img src="http://p4.music.126.net/tt0Vv-Wh0gxa4MHXl6uf-g==/109951163170754277.jpg" alt="Alt text"><br>对于传统的message queue而言，一般会删除已经被消费的消息，而Kafka集群会保留所有的消息，无论其被消费与否。当然，因为磁盘限制，不可能永久保留所有数据（实际上也没<br>必要），因此Kafka提供两种策略删除旧数据。一是基于时间，二是基于Partition文件大小<br>这里要注意，因为Kafka读取特定消息的时间复杂度为O(1)，即与文件大小无关，所以这里删除过期文件与提高Kafka性能无关。选择怎样的删除策略只与磁盘以及具体的需求有关。<br>另外，Kafka会为每一个Consumer Group保留一些metadata信息——当前消费的消息的position，也即offset。这个offset由Consumer控制。正常情况下Consumer会在消费完一条消息&gt;后递增该offset。当然，Consumer也可将offset设成一个较小的值，重新消费一些消息。因为offet由Consumer控制，所以Kafka broker是无状态的，它不需要标记哪些消息被哪些&gt;消费过，也不需要通过broker去保证同一个Consumer Group只有一个Consumer能消费某一条消息，因此也就不需要锁机制，这也为Kafka的高吞吐率提供了有力保障</p>
+<blockquote>
+<p>消费方式</p>
+</blockquote>
+<p>consumer 采用 pull 模式从 broker 中读取数据。</p>
+<p>push 模式很难适应消费速率不同的消费者，因为消息发送速率是由 broker 决定的。它的目标是尽可能以最快速度传递消息，但是这样很容易造成 consumer 来不及处理消息，典型的表现就是拒绝服务以及网络拥塞。而 pull 模式则可以根据 consumer 的消费能力以适当的速率消费消息。<br>对于 Kafka 而言，pull 模式更合适，它可简化 broker 的设计，consumer 可自主控制消费消息的速率，同时 consumer 可以自己控制消费方式——即可批量消费也可逐条消费，同时还能选择不同的提交方式从而实现不同的传输语义</p>
 
       
 
@@ -434,6 +467,18 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
               </li>
              
@@ -442,15 +487,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">java</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -462,15 +499,19 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">Java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">面试</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">Java服务端</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
               </li>
              
               <li class="article-tag-list-item">

@@ -158,6 +158,53 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-总结工作中用到的guava场景" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/18/总结工作中用到的guava场景/">总结工作中用到的guava场景</a>
+    </h1>
+  
+
+        
+        <a href="/2018/01/18/总结工作中用到的guava场景/" class="archive-article-date">
+  	<time datetime="2018-01-17T21:20:50.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-17</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/01/18/总结工作中用到的guava场景/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="post-log4j2的尝试" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -394,7 +441,58 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <p>其实用Java8的时间却是不长，之前还在Java6的圈子中打转，直到机缘巧合的遇到了新同事，他用Java8活灵活现，尤其是函数式编程。于是我便好奇心爆棚研究了一下，写下自己研究的相关历程，以供后面回顾或者有缘人看到。</p>
+<blockquote>
+<p>举例</p>
+</blockquote>
+<ul>
+<li><p>原来的从List转Map方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">List&lt;Fuck&gt; fuckList = Lists.newArrayList();</div><div class="line">Map&lt;Long, Fuck&gt; fuckMap = Maps.newHashMap();</div><div class="line"><span class="keyword">for</span> (Fuck fuck : fuckList)&#123;</div><div class="line">  fuckMap.put(fuck.getId(), fuck);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>用Stream的方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">List&lt;Fuck&gt; fuckList = Lists.newArrayList();</div><div class="line">Map&lt;Long, Fuck&gt; fuckMap = fuckList.stream()</div><div class="line">  .collect(Collectors.toMap(Fuck::getId, fuck -&gt; fuck, (fuck1, fuck2) -&gt; fuck1));</div></pre></td></tr></table></figure>
+</li>
+<li><p>原来的从List中取出某个元素集合的方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">List&lt;Fuck&gt; fuckList = Lists.newArrayList();</div><div class="line">List&lt;Long&gt; fuckIds = Lists.newArrayList();</div><div class="line"><span class="keyword">for</span> (Fuck fuck : fuckList)&#123;</div><div class="line">  fuckIds.add(fuck.getId());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>用Stream的方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">List&lt;Fuck&gt; fuckList = Lists.newArrayList();</div><div class="line">List&lt;Long&gt; fuckIds = fuckList.stream().map(Fuck::getId)</div><div class="line">					.filter(Fuck::isValid)</div><div class="line">                    .collect(Collectors.toList());</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>暂时举的例子，很好地说明了情况，stram的流基本省去了for循环，而且还能在某项操作后继续处理</p>
+<blockquote>
+<p>函数式编程</p>
+</blockquote>
+<ul>
+<li>类型推断<ul>
+<li>使用菱形操作符，根据变量类型做推断</li>
+<li>使用菱形操作符，根据方法签名做推断<br>JAVA里面重要的函数接口<br><img src="http://p3.music.126.net/6oK61-WdjxxcmzYT0zdWYg==/109951163177954435.jpg" alt="Alt text"></li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>stream流</p>
+</blockquote>
+<ul>
+<li><p>惰性求值方法 &amp; 及早求值方法<br>最终不产生新集合的方法叫作惰性求值方法，而像count这样最终会从Stream产生值的方法叫作及早求值方法<br>就是说，Stream的惰性求值方法不会被真正执行，在调用及早求值方法的时候整个调用链才会被执行</p>
+</li>
+<li><p>flatMap方法</p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; together = Stream.of(asList(<span class="number">1</span>, <span class="number">2</span>), asList(<span class="number">3</span>, <span class="number">4</span>))</div><div class="line">                         .flatMap(numbers -&gt; numbers.stream())</div><div class="line">                         .collect(toList());</div><div class="line">assertEquals(asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>), together);</div></pre></td></tr></table></figure>
+<ul>
+<li>reduce, 可以实现从一组值中生成一个值</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> sum = Stream.of(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>)</div><div class="line">          .reduce(<span class="number">0</span>, (acc, element) -&gt; acc + element);</div><div class="line">System.out.println(sum);</div></pre></td></tr></table></figure>
+<ul>
+<li>在函数返回值上用到Stream</li>
+</ul>
+<blockquote>
+<p>遇到的问题</p>
+<p>优点</p>
+<p>缺点</p>
+</blockquote>
+
       
 
       
@@ -402,6 +500,21 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">java</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">服务端</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
@@ -571,6 +684,18 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
               </li>
              
@@ -579,15 +704,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">java</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -599,15 +716,19 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">Java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">面试</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">Java服务端</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
               </li>
              
               <li class="article-tag-list-item">
