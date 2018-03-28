@@ -8,16 +8,17 @@
   <link rel="dns-prefetch" href="http://bingbingxin.com">
   <title>Volatile的应用探究 | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="java,mysql,linux,kafka,spring,mybatis,springboot">
+  <meta name="description" content="Volatile入门   我们首先来看下Volatile到底是个什么鬼  1234567891011private volatile static Singleton instance = null;public static Singleton getInstance() &amp;#123;    if (instance == null) &amp;#123;        synchronized (S">
+<meta name="keywords" content="Java">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Volatile的应用探究">
 <meta property="og:url" content="http://bingbingxin.com/2018/02/07/Volatile的应用探究/index.html">
 <meta property="og:site_name" content="bingbingxin">
-<meta property="og:description" content="java,mysql,linux,kafka,spring,mybatis,springboot">
-<meta property="og:updated_time" content="2018-02-07T03:14:24.000Z">
+<meta property="og:description" content="Volatile入门   我们首先来看下Volatile到底是个什么鬼  1234567891011private volatile static Singleton instance = null;public static Singleton getInstance() &amp;#123;    if (instance == null) &amp;#123;        synchronized (S">
+<meta property="og:updated_time" content="2018-03-26T12:25:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Volatile的应用探究">
-<meta name="twitter:description" content="java,mysql,linux,kafka,spring,mybatis,springboot">
+<meta name="twitter:description" content="Volatile入门   我们首先来看下Volatile到底是个什么鬼  1234567891011private volatile static Singleton instance = null;public static Singleton getInstance() &amp;#123;    if (instance == null) &amp;#123;        synchronized (S">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
   
@@ -177,7 +178,42 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <blockquote>
+<p>Volatile入门</p>
+</blockquote>
+<ul>
+<li>我们首先来看下Volatile到底是个什么鬼</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> Singleton instance = <span class="keyword">null</span>;</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">synchronized</span> (Singleton.class) &#123;</div><div class="line">            <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</div><div class="line">                instance = <span class="keyword">new</span> Singleton();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> instance;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>定义成volatile的变量是指多线程间可以共享该变量，但是为了确保共享变量能被准确和一致地更新，线程应该确保通过排他锁单独获得这个变量。上面是DCL方式的经典单例模式。其中instance对象如果没有volatile修饰的话，会在编译后，编译器做优化把下面的两个if语句进行合并。加了volatile, 则是告诉编译器这个变量是有可能被多线程访问（会被随时修改），这样编译器就不会把这两个判断优化成一个判断了。</p>
+<blockquote>
+<p>计算机系统内存</p>
+</blockquote>
+<p>关于计算机系统内存的原理就不细说了，大致流程是CPU -&gt; 高速CACHE -&gt; 数据总线(一致性缓存协议) -&gt; 主️存<br>当在单CPU环境下这个并不会有太大问题，当多个CPU下，就有可能会对同一份资源进行load和update, 结果就会造成数据不一致。<br>有两个方式可以解决缓存数据不一致的情况</p>
+<ul>
+<li>加总线LOCK的方式，该方式会阻塞其他CPU获取资源，一般加锁的方式都比较耗费资源</li>
+<li>缓存一致性协议，它会确保每个CPU读取到的变量副本都是一致的。当某个CPU在写数据时，如果发现操作的变量是共享变量，则会通知（增加变量标记)其他CPU告知该变量的缓存行是无效的，因此其他CPU在读取该变量时，发现其无效会重新从主存中加载数据</li>
+</ul>
+<blockquote>
+<p>Java内存模型</p>
+</blockquote>
+<ul>
+<li>原子性，volatile是无法保证复合操作的原子性，要想在多线程环境下保证原子性，则可以通过锁、synchronized来确保。</li>
+<li>可见性，可见性是指当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值。Java提供了volatile来保证可见性。</li>
+<li>有序性，即程序执行的顺序按照代码的先后顺序执行。</li>
+</ul>
+<blockquote>
+<p>volatile原理</p>
+</blockquote>
+<ul>
+<li>volatile可以保证线程可见性且提供了一定的有序性，但是无法保证原子性。在JVM底层volatile是采用“内存屏障”来实现的。<br>具体解释有两层含义</li>
+</ul>
+<ol>
+<li>保证可见性，不保证原子性 2. 禁止指令重排序</li>
+</ol>
+<p>具体lock原理可以看<a href="http://www.importnew.com/23520.html" target="_blank" rel="external">volatile原理</a><br>以及摘自文章 <a href="https://www.cnblogs.com/guangshan/p/4977542.html" target="_blank" rel="external">DCL经典单例模式</a></p>
+
       
 
       
@@ -206,6 +242,17 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
@@ -393,11 +440,23 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">Java面试</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">服务端</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">Java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -422,10 +481,6 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">spring</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
               <li class="article-tag-list-item">

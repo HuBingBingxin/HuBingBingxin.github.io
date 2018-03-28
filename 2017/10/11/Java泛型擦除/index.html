@@ -8,16 +8,17 @@
   <link rel="dns-prefetch" href="http://bingbingxin.com">
   <title>Java泛型擦除.md | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="java,mysql,linux,kafka,spring,mybatis,springboot">
+  <meta name="description" content="泛型   泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数 泛型约束规范 赋值语句的左右两边类型必须兼容 函数调用的实参与其形参类型必须兼容 return的表达式类型与函数定义的返回值类型必须兼容 还有多态类型检查，既向上转型可以直接通过，但是向下转型必须强制类型转换（前提是有继承关系）">
+<meta name="keywords" content="Java,JDK">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java泛型擦除.md">
 <meta property="og:url" content="http://bingbingxin.com/2017/10/11/Java泛型擦除/index.html">
 <meta property="og:site_name" content="bingbingxin">
-<meta property="og:description" content="java,mysql,linux,kafka,spring,mybatis,springboot">
-<meta property="og:updated_time" content="2017-10-11T06:03:19.000Z">
+<meta property="og:description" content="泛型   泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数 泛型约束规范 赋值语句的左右两边类型必须兼容 函数调用的实参与其形参类型必须兼容 return的表达式类型与函数定义的返回值类型必须兼容 还有多态类型检查，既向上转型可以直接通过，但是向下转型必须强制类型转换（前提是有继承关系）">
+<meta property="og:updated_time" content="2018-03-26T13:02:32.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java泛型擦除.md">
-<meta name="twitter:description" content="java,mysql,linux,kafka,spring,mybatis,springboot">
+<meta name="twitter:description" content="泛型   泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数 泛型约束规范 赋值语句的左右两边类型必须兼容 函数调用的实参与其形参类型必须兼容 return的表达式类型与函数定义的返回值类型必须兼容 还有多态类型检查，既向上转型可以直接通过，但是向下转型必须强制类型转换（前提是有继承关系）">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
   
@@ -177,7 +178,22 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <blockquote>
+<p>泛型</p>
+</blockquote>
+<ul>
+<li>泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数</li>
+<li>泛型约束规范<ul>
+<li>赋值语句的左右两边类型必须兼容</li>
+<li>函数调用的实参与其形参类型必须兼容</li>
+<li>return的表达式类型与函数定义的返回值类型必须兼容</li>
+<li>还有多态类型检查，既向上转型可以直接通过，但是向下转型必须强制类型转换（前提是有继承关系）</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+</blockquote>
+
       
 
       
@@ -206,6 +222,21 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Java</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">JDK</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
@@ -393,11 +424,23 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">Java面试</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">服务端</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">Java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -422,10 +465,6 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">spring</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
               <li class="article-tag-list-item">
