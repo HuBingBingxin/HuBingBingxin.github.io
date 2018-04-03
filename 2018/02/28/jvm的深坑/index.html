@@ -8,17 +8,17 @@
   <link rel="dns-prefetch" href="http://bingbingxin.com">
   <title>jvm的深坑 | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Jvm原理   深入浅出Java垃圾回收机制 实际案例GC优化">
+  <meta name="description" content="Jvm原理   深入浅出Java垃圾回收机制 实际案例GC优化 CG优化案例 GC垃圾收集器, 垃圾收集器（老年代GC） Serial收集器，标记-清除-整理，serial收集器应用于小的存储器和少量的CPU Parallel收集器，吞吐量优先垃圾收集器 ParallelOld收集器，标记-汇总-压缩算法，会把要删除的先放在一个统一的地方 CMS垃圾收集器，初始标记 -&amp;gt; 并发标记, 低延">
 <meta name="keywords" content="java,jvm">
 <meta property="og:type" content="article">
 <meta property="og:title" content="jvm的深坑">
 <meta property="og:url" content="http://bingbingxin.com/2018/02/28/jvm的深坑/index.html">
 <meta property="og:site_name" content="bingbingxin">
-<meta property="og:description" content="Jvm原理   深入浅出Java垃圾回收机制 实际案例GC优化">
-<meta property="og:updated_time" content="2018-03-06T11:47:11.000Z">
+<meta property="og:description" content="Jvm原理   深入浅出Java垃圾回收机制 实际案例GC优化 CG优化案例 GC垃圾收集器, 垃圾收集器（老年代GC） Serial收集器，标记-清除-整理，serial收集器应用于小的存储器和少量的CPU Parallel收集器，吞吐量优先垃圾收集器 ParallelOld收集器，标记-汇总-压缩算法，会把要删除的先放在一个统一的地方 CMS垃圾收集器，初始标记 -&amp;gt; 并发标记, 低延">
+<meta property="og:updated_time" content="2018-03-29T02:42:25.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="jvm的深坑">
-<meta name="twitter:description" content="Jvm原理   深入浅出Java垃圾回收机制 实际案例GC优化">
+<meta name="twitter:description" content="Jvm原理   深入浅出Java垃圾回收机制 实际案例GC优化 CG优化案例 GC垃圾收集器, 垃圾收集器（老年代GC） Serial收集器，标记-清除-整理，serial收集器应用于小的存储器和少量的CPU Parallel收集器，吞吐量优先垃圾收集器 ParallelOld收集器，标记-汇总-压缩算法，会把要删除的先放在一个统一的地方 CMS垃圾收集器，初始标记 -&amp;gt; 并发标记, 低延">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
   
@@ -184,6 +184,15 @@
 <ul>
 <li><a href="http://www.importnew.com/1993.html" target="_blank" rel="external">深入浅出Java垃圾回收机制</a></li>
 <li><a href="https://mp.weixin.qq.com/s?__biz=MjM5NjQ5MTI5OA==&amp;mid=2651747273&amp;idx=1&amp;sn=7f947064a41eeecb6816a5d0838581ae" target="_blank" rel="external">实际案例GC优化</a></li>
+<li><a href="https://blog.csdn.net/jiafu1115/article/details/7024323" target="_blank" rel="external">CG优化案例</a></li>
+<li><a href="http://www.importnew.com/20354.html" target="_blank" rel="external">GC垃圾收集器</a>, 垃圾收集器（老年代GC）<ul>
+<li>Serial收集器，标记-清除-整理，serial收集器应用于小的存储器和少量的CPU</li>
+<li>Parallel收集器，吞吐量优先垃圾收集器</li>
+<li>ParallelOld收集器，标记-汇总-压缩算法，会把要删除的先放在一个统一的地方</li>
+<li>CMS垃圾收集器，初始标记 -&gt; 并发标记, 低延迟垃圾收集器, 会更多的占用CPU</li>
+<li>G1GC收集器，每个对象被分配到不同的网格中，随后执行垃圾回收。当一个区域填满之后，对象被转移到另一个区域，并再执行一次垃圾回收</li>
+</ul>
+</li>
 </ul>
 
       
@@ -424,15 +433,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">JDK</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -453,6 +462,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">server</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">分布式</a>
               </li>
              
               <li class="article-tag-list-item">
