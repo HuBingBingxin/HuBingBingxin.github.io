@@ -8,17 +8,17 @@
   <link rel="dns-prefetch" href="http://bingbingxin.com">
   <title>Java泛型擦除.md | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="泛型   泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数 泛型约束规范 赋值语句的左右两边类型必须兼容 函数调用的实参与其形参类型必须兼容 return的表达式类型与函数定义的返回值类型必须兼容 还有多态类型检查，既向上转型可以直接通过，但是向下转型必须强制类型转换（前提是有继承关系）">
+  <meta name="description" content="泛型简介   泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数 泛型约束规范 赋值语句的左右两边类型必须兼容 函数调用的实参与其形参类型必须兼容 return的表达式类型与函数定义的返回值类型必须兼容 还有多态类型检查，既向上转型可以直接通过，但是向下转型必须强制类型转换（前提是有继承关系）     具体流程   List, List                   -&amp;g">
 <meta name="keywords" content="Java,JDK">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java泛型擦除.md">
 <meta property="og:url" content="http://bingbingxin.com/2017/10/11/Java泛型擦除/index.html">
 <meta property="og:site_name" content="bingbingxin">
-<meta property="og:description" content="泛型   泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数 泛型约束规范 赋值语句的左右两边类型必须兼容 函数调用的实参与其形参类型必须兼容 return的表达式类型与函数定义的返回值类型必须兼容 还有多态类型检查，既向上转型可以直接通过，但是向下转型必须强制类型转换（前提是有继承关系）">
-<meta property="og:updated_time" content="2018-03-26T13:02:32.000Z">
+<meta property="og:description" content="泛型简介   泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数 泛型约束规范 赋值语句的左右两边类型必须兼容 函数调用的实参与其形参类型必须兼容 return的表达式类型与函数定义的返回值类型必须兼容 还有多态类型检查，既向上转型可以直接通过，但是向下转型必须强制类型转换（前提是有继承关系）     具体流程   List, List                   -&amp;g">
+<meta property="og:updated_time" content="2018-04-08T11:11:19.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java泛型擦除.md">
-<meta name="twitter:description" content="泛型   泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数 泛型约束规范 赋值语句的左右两边类型必须兼容 函数调用的实参与其形参类型必须兼容 return的表达式类型与函数定义的返回值类型必须兼容 还有多态类型检查，既向上转型可以直接通过，但是向下转型必须强制类型转换（前提是有继承关系）">
+<meta name="twitter:description" content="泛型简介   泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数 泛型约束规范 赋值语句的左右两边类型必须兼容 函数调用的实参与其形参类型必须兼容 return的表达式类型与函数定义的返回值类型必须兼容 还有多态类型检查，既向上转型可以直接通过，但是向下转型必须强制类型转换（前提是有继承关系）     具体流程   List, List                   -&amp;g">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
   
@@ -179,7 +179,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <blockquote>
-<p>泛型</p>
+<p>泛型简介</p>
 </blockquote>
 <ul>
 <li>泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数</li>
@@ -192,7 +192,15 @@
 </li>
 </ul>
 <blockquote>
+<p>具体流程</p>
 </blockquote>
+<ul>
+<li>List<string>, List<t>                   -&gt; List</t></string></li>
+<li>List<string>[], List<t>[]               -&gt; List[]</t></string></li>
+<li>List&lt;? extends E&gt;, List&lt;? super E&gt;      -&gt; List<e></e></li>
+<li>List<t extends="" serialzable="" &="" cloneable=""> -&gt; List<serializable></serializable></t></li>
+</ul>
+<p>JVM在编译时泛型还存在，在编译后泛型就被擦除了</p>
 
       
 
@@ -428,11 +436,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
+                <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Java</a>
+                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -444,15 +452,19 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -464,11 +476,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">分布式</a>
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">分布式</a>
               </li>
              
               <li class="article-tag-list-item">

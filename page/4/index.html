@@ -158,6 +158,53 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Hbase入门" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/11/03/Hbase入门/">Hbase入门</a>
+    </h1>
+  
+
+        
+        <a href="/2017/11/03/Hbase入门/" class="archive-article-date">
+  	<time datetime="2017-11-03T10:58:21.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-11-03</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/11/03/Hbase入门/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="post-Java泛型擦除" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -179,7 +226,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <blockquote>
-<p>泛型</p>
+<p>泛型简介</p>
 </blockquote>
 <ul>
 <li>泛型是JDK1.5提供的，很方便的抛弃了之前一堆Object的参数</li>
@@ -192,7 +239,15 @@
 </li>
 </ul>
 <blockquote>
+<p>具体流程</p>
 </blockquote>
+<ul>
+<li>List<string>, List<t>                   -&gt; List</t></string></li>
+<li>List<string>[], List<t>[]               -&gt; List[]</t></string></li>
+<li>List&lt;? extends E&gt;, List&lt;? super E&gt;      -&gt; List<e></e></li>
+<li>List<t extends="" serialzable="" &="" cloneable=""> -&gt; List<serializable></serializable></t></li>
+</ul>
+<p>JVM在编译时泛型还存在，在编译后泛型就被擦除了</p>
 
       
 
@@ -506,11 +561,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
+                <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Java</a>
+                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -522,15 +577,19 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -542,11 +601,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">分布式</a>
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+                <a href="javascript:void(0)" class="js-tag color4">分布式</a>
               </li>
              
               <li class="article-tag-list-item">
