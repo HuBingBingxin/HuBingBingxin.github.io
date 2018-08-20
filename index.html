@@ -202,10 +202,10 @@
 <p>bar方法调用了fuckBar，把foo实例作为入参传入了fuckBar，这个时候认为foo逃逸出了bar方法之外，但是bar和fuckBar在一个类里面，并没有被其他类所引用，我们认为foo实例对象没有逃逸出线程。</p>
 <p>JVM怎么做的？</p>
 <blockquote>
-<p>标量替换 &amp; 锁消除优化 &amp; 栈上动态分配</p>
+<p>标量替换 &amp; 锁消除优化</p>
 </blockquote>
-<p>标量替换，Java里面标量的意思是不能再分割的量，例如基本类型和reference类型。反之不能再分割的类型成为聚合量。如果把一个对象拆开，将它的成员变量分割成标量，这个就叫做标量替换。如果逃逸分析发现一个对象不会被外部访问，并且该对象可以被拆散，那么经过优化之后，并不直接生成该对象，而是在栈上创建若干个成员变量。原本的对象就无需整体分配空间了。<br>通过-XX:+EliminateAllocations可以开启标量替换， -XX:+PrintEliminateAllocations查看标量替换情况。</p>
-<p>锁消除优化，Java方法里的返回值如果没有被其他类用到，那这个对象就不会逃逸出线程，我们知道变量的读写竞争时需要加锁访问，如果确定该变量不会逃逸出该线程，那同步访问控制就<br>可以优化掉。</p>
+<p>标量替换，Java里面标量的意思是不能再分割的量，例如基本类型和reference类型。反之不能再分割的类型成为聚合量。如果把一个对象拆开，将它的成员变量分割成标量，这个就叫做标量替换。如果逃逸分析发现一个对象不会被外部访问，并且该对象可以被拆散，那么经过优化之后，并不直接生成该对象，而是在栈上创建若干个成员变量。原本的对象就无需整体分配空间了。这里说明一下，栈帧内分配对象的方式称为栈上分配。这样做的目的是，减少新生代的收集次数，间接提高JVM性能（没有在堆上分配就会随着栈帧的退出而销毁)。实际上在hotspot中是用标量替换实现了动态栈上分配的思想。<br>通过-XX:+EliminateAllocations可以开启标量替换， -XX:+PrintEliminateAllocations查看标量替换情况。</p>
+<p>锁消除优化，Java方法里的返回值如果没有被其他类用到，那这个对象就不会逃逸出线程，我们知道变量的读写竞争时需要加锁访问，如果确定该变量不会逃逸出该线程，那同步访问控制就可以优化掉。</p>
 <blockquote>
 <p>实操</p>
 </blockquote>
@@ -215,7 +215,7 @@
 <p><img src="/imgs/jvmdy-1-20180816-2037.png" width="640" hegiht="300" align="center"></p>
 <p>现在打开逃逸分析看下这个User对象的占用 -server -XX:-DoEscapeAnalysis</p>
 <p><img src="/imgs/gcdynamic-2-2018-0816-2039.png" width="640" hegiht="300" align="center"></p>
-<p>对比很明显，在关闭逃逸分析的情况下这个User对象一共占了101225160bytes, 关闭逃逸分析之后User对象占用2169024, 差了好几个数量级。只剩9w左右的对象在堆上实例化了，这表明user的属性被<br>标量替换了。我们来打开JVM的日志看下实际的优化方式，先打开编译器看下JIT编译日志，额外说一点，触发JIT编译是有条件的</p>
+<p>对比很明显，在关闭逃逸分析的情况下这个User对象一共占了101225160bytes, 关闭逃逸分析之后User对象占用2169024, 差了好几个数量级。只剩9w左右的对象在堆上实例化了，这表明user的属性被标量替换了。我们来打开JVM的日志看下实际的优化方式，先打开编译器看下JIT编译日志，额外说一点，触发JIT编译是有条件的</p>
 <blockquote>
 <p>JIT编译</p>
 </blockquote>
@@ -227,8 +227,8 @@
 <p>%: The compilation is OSR<br>s: The method is synchronized<br>!: The method has an exception handler<br>b: Compilation occurred in blocking mode<br>n: Compilation occurred for a wrapper to a native method</p>
 <p>tiered_level:</p>
 <p>0: Interpreted Code<br>1: Simple C1 Compiled Code<br>2: Limited C1 Compiled Code<br>3: Full C1 Compiled Code<br>4: C2 Compiled Code</p>
-<p>可以看到bar方法是标准的JIT编译</p>
-<p>下面继续增加JVM参数观察下inline -XX:+PrintInlining 这个如果提示在debug的version下才能用的话，可以增加这个参数-XX:+UnlockDiagnosticVMOptions。<br>这里额外说下内联，方法能否内联是有两个衡量标准的，1. 方法的调用热度 2. 方法的占用空间（默认占用325 bytes以下的才能被内联，可以自己调节大小）</p>
+<p>上图可以看到bar方法是标准的JIT编译</p>
+<p>下面继续增加JVM参数观察下inline -XX:+PrintInlining 这个如果提示在debug的version下才能用的话，可以增加这个参数-XX:+UnlockDiagnosticVMOptions。<br>这里说下方法内联，方法能否内联是有两个衡量标准的，1. 方法的调用热度 2. 方法的占用空间（默认占用325 bytes以下的才能被内联，可以自己调节大小）</p>
 <p><img src="/imgs/2018/08/1404.png" width="540" hegiht="320" align="center"></p>
 <p>可以看到bar方法里面的User init 以及getAge accessor, 这个代表User的getAge方法被内联了，内联后的代码等价于</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">bar</span><span class="params">(Foo foo, <span class="keyword">int</span> age)</span></span>&#123;</div><div class="line">    User user = User::<span class="keyword">new</span>;   <span class="comment">//创建user对象但是不调用User的构造器，因为User的构造器被内联了</span></div><div class="line">    user.age = age;          <span class="comment">//User的只有age参数的构造方法被内联</span></div><div class="line"></div><div class="line">    <span class="keyword">return</span> foo.a + user.age + foo.b; <span class="comment">//user.getAge()也被内联了</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -242,9 +242,17 @@
 <p>打开逃逸分析后，观察GC的情况，GC的收集次数是很少的</p>
 <p>[GC (Allocation Failure)  2048K-&gt;520K(9728K), 0.0012356 secs]<br>[GC (Allocation Failure)  2568K-&gt;488K(9728K), 0.0010649 secs]</p>
 <blockquote>
-<p>其他的优化方式</p>
+<p>其他的JVM编译优化方式</p>
+</blockquote>
+<ul>
+<li>公共子表达式消除</li>
+<li>数组边界检查</li>
+</ul>
+<blockquote>
 <p>总结</p>
-<p>尾巴<br>我们在保持业务开发的时候，也要关注底层的原理以及优化方式和方法，</p>
+</blockquote>
+<p>JVM的优化方式有很多种，早期编译的优化和运行时期的优化，逃逸分析作为JVM优化系列的第一篇，介绍了逃逸范围和逃逸分析后的底层占用，和没有逃逸分析相比在GC上有着明显的优势。<br>作为业务开发，我们在大量业务开发的情况下，需要保持清醒的头脑，站在更高的角度来看待事物的发展以及关注底层的原理和优化方法。愿我们写出越来越优雅的代码。=，=共勉</p>
+<blockquote>
 <p>传送门</p>
 <ul>
 <li><a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.224.353&amp;rep=rep1&amp;type=pdf" target="_blank" rel="external">1999年逃逸分析的经典论文</a></li>
@@ -936,6 +944,18 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">Java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">逃逸分析</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">服务端</a>
               </li>
              
@@ -945,10 +965,6 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">工作</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1013,14 +1029,6 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">逃逸分析</a>
               </li>
             
             <div class="clearfix"></div>
