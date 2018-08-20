@@ -158,6 +158,145 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-JVM优化之逃逸分析" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/08/02/JVM优化之逃逸分析/">JVM优化之逃逸分析</a>
+    </h1>
+  
+
+        
+        <a href="/2018/08/02/JVM优化之逃逸分析/" class="archive-article-date">
+  	<time datetime="2018-08-01T16:35:01.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-08-01</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>之前的小伙伴介绍过逃逸分析，现在自己想深入研究一下逃逸分析具体是什么，JVM帮我们做了什么，为什么要做，以及怎么做的？</p>
+<p>什么是逃逸分析？</p>
+<blockquote>
+<p>逃逸分析首先要划分范围，就是说在我们的日常代码里存在着不同级别的逃逸。逃逸分析实际上是JVM的一种为优化提供支持的分析手段，我们都知道javac只是原封不动的翻译了我们的代码(静态编译)，具体的优化还是要靠JVM的动态编译(JIT,分为C1，C2，C1 + C2，这个可以另一篇文章介绍)。</p>
+</blockquote>
+<p>还是给个图来表示静态编译到动态编译吧:<br><img src="/imgs/compiler.png" width="800" hegiht="400" align="center"></p>
+<p>逃逸分析的优化手段我们可能接触的不多，但是底层（JVM）帮我们开发者做了很多，不是有一句话是说JVM是最好的Java软件也不为过。</p>
+<blockquote>
+<p>逃逸分析的范围分为两个：方法逃逸 &amp; 线程逃逸</p>
+</blockquote>
+<ul>
+<li>不逃逸出当前方法就是说，在一个方法内new 出来的对象，它的引用没用泄漏到这个方法之外，举个没有逃逸出本方法例子：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Foo</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> a;</div><div class="line">    <span class="keyword">int</span> b;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">bar</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span></span>&#123;</div><div class="line">    Foo foo = <span class="keyword">new</span> Foo();</div><div class="line">    foo.a = a;</div><div class="line">    foo.b = b;</div><div class="line">    <span class="keyword">return</span> foo.a + foo.b; <span class="comment">// foo对象没有逃逸出bar方法，只在bar方法里当作局部变量存在</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里例子里面的，Foo对象就没有逃逸出bar方法，只有一个局部foo变量引用着这个对象。foo变量及既没有当作返回值也没有当作另一个方法的参数。<br>但是其实我们一般写普通的Java Bean实际上是会有get() set()方法，那上面的例子就变成了下面的:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Foo</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> a;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> b;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Foo</span><span class="params">()</span> </span>&#123;</div><div class="line"></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Foo</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.a = a;</div><div class="line">        <span class="keyword">this</span>.b = b;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getA</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> a;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getB</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> b;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果在bar方法里仍然给Foo的实例foo对象赋值，那就肯定会调用到Foo的成员方法(get() set())，把局部变量foo的this作为参数传递给Foo的成员方法，这个时候变量foo确实逃逸出了bar方法。这个时候我们要要提到另外一个JIT的优化技术–方法内联，方法内联之后这个参数传递实际上就优化掉了，这个时候可以做进一步的优化和分析。</p>
+<ul>
+<li>不逃逸出当前线程就是说，对象的实例没有被别的类引用到。该对象的引用赋值到别的对象的字段/别的类的静态字段上，没办法让它进入一个全局可见的范围，这个时候我们认为改实例没有逃逸出当前线程。还是继续刚才的Foo类</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">bar</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span></span>&#123;</div><div class="line">    Foo foo = <span class="keyword">new</span> Foo();</div><div class="line">    foo.a = a;</div><div class="line">    foo.b = b;</div><div class="line">    <span class="keyword">return</span> fuckBar(foo);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">fuckBar</span><span class="params">(Foo foo)</span></span>&#123;</div><div class="line">	<span class="keyword">return</span> foo.a + foo.b;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>bar方法调用了fuckBar，把foo实例作为入参传入了fuckBar，这个时候认为foo逃逸出了bar方法之外，但是bar和fuckBar在一个类里面，并没有被其他类所引用，我们认为foo实例对象没有逃逸出线程。</p>
+<p>JVM怎么做的？</p>
+<blockquote>
+<p>标量替换 &amp; 锁消除优化 &amp; 栈上动态分配</p>
+</blockquote>
+<p>标量替换，Java里面标量的意思是不能再分割的量，例如基本类型和reference类型。反之不能再分割的类型成为聚合量。如果把一个对象拆开，将它的成员变量分割成标量，这个就叫做标量替换。如果逃逸分析发现一个对象不会被外部访问，并且该对象可以被拆散，那么经过优化之后，并不直接生成该对象，而是在栈上创建若干个成员变量。原本的对象就无需整体分配空间了。<br>通过-XX:+EliminateAllocations可以开启标量替换， -XX:+PrintEliminateAllocations查看标量替换情况。</p>
+<p>锁消除优化，Java方法里的返回值如果没有被其他类用到，那这个对象就不会逃逸出线程，我们知道变量的读写竞争时需要加锁访问，如果确定该变量不会逃逸出该线程，那同步访问控制就<br>可以优化掉。</p>
+<blockquote>
+<p>实操</p>
+</blockquote>
+<p>我们引入一个简单的新类User，只有两个属性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> String name;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</div><div class="line">&#125; <span class="comment">//get set 以及构造方法省略</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">bar</span><span class="params">(Foo foo)</span></span>&#123;</div><div class="line">    User user = <span class="keyword">new</span> User(<span class="number">23</span>);</div><div class="line">    <span class="keyword">return</span> foo.getA() + foo.getB() + user.getAge();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">    Foo foo = <span class="keyword">new</span> Foo();</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1000000000</span>; i++)&#123;</div><div class="line">    	foo.foo(<span class="number">4</span>, <span class="number">45</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>关闭逃逸分析看下jmap的对象占用 -server -XX:-DoEscapeAnalysis</p>
+<p><img src="/imgs/jvmdy-1-20180816-2037.png" width="640" hegiht="300" align="center"></p>
+<p>现在打开逃逸分析看下这个User对象的占用 -server -XX:-DoEscapeAnalysis</p>
+<p><img src="/imgs/gcdynamic-2-2018-0816-2039.png" width="640" hegiht="300" align="center"></p>
+<p>对比很明显，在关闭逃逸分析的情况下这个User对象一共占了101225160bytes, 关闭逃逸分析之后User对象占用2169024, 差了好几个数量级。只剩9w左右的对象在堆上实例化了，这表明user的属性被<br>标量替换了。我们来打开JVM的日志看下实际的优化方式，先打开编译器看下JIT编译日志，额外说一点，触发JIT编译是有条件的</p>
+<blockquote>
+<p>JIT编译</p>
+</blockquote>
+<p>在JVM里面触发JIT编译是基于两个计数器的，1. 一个方法被调用的次数 2. 存在有分支的方法里面的循环次数。解释下第二点，方法里面有个很长的循环或者永远都不会退出的循环，<br>这个时候需要编译到这个循环，每一次分支的循环被调用，该分支的计数器就会增加，达到阈值的时候就会出发OSR编译。<br>标准JIT编译的参数是：-XX:CompileThreshold=N 默认值cliet模式和server模式是不一样的。<br>OSR的触发条件是：OSR trigger = (CompileThreshold *((OnStackReplacePercentage - InterpreterProfilePercentage)/100))</p>
+<p>我们回过头来看这段优化的JIT编译信息，增加-XX:+PrintCompilation参数观察JVM输出的编译日志</p>
+<p><img src="/imgs/2018/08/0820.png" width="960" hegiht="640" align="center"></p>
+<p>分析下这个日志，编译日志分为7列，依次是时间(基于JVM启动的时间戳),编译任务id(一般都是递增的),编译属性,tiered_level(分为4级),方法信息,占用字节数,deopt</p>
+<p>编译属性arrtibute分为:</p>
+<p>%: The compilation is OSR<br>s: The method is synchronized<br>!: The method has an exception handler<br>b: Compilation occurred in blocking mode<br>n: Compilation occurred for a wrapper to a native method</p>
+<p>tiered_level:</p>
+<p>0: Interpreted Code<br>1: Simple C1 Compiled Code<br>2: Limited C1 Compiled Code<br>3: Full C1 Compiled Code<br>4: C2 Compiled Code</p>
+<p>可以看到bar方法是标准的JIT编译</p>
+<p>下面继续增加JVM参数观察下inline -XX:+PrintInlining 这个如果提示在debug的version下才能用的话，可以增加这个参数-XX:+UnlockDiagnosticVMOptions。<br>这里额外说下内联，方法能否内联是有两个衡量标准的，1. 方法的调用热度 2. 方法的占用空间（默认占用325 bytes以下的才能被内联，可以自己调节大小）</p>
+<p><img src="/imgs/2018/08/1404.png" width="540" hegiht="320" align="center"></p>
+<p>可以看到bar方法里面的User init 以及getAge accessor, 这个代表User的getAge方法被内联了，内联后的代码等价于</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">bar</span><span class="params">(Foo foo, <span class="keyword">int</span> age)</span></span>&#123;</div><div class="line">    User user = User::<span class="keyword">new</span>;   <span class="comment">//创建user对象但是不调用User的构造器，因为User的构造器被内联了</span></div><div class="line">    user.age = age;          <span class="comment">//User的只有age参数的构造方法被内联</span></div><div class="line"></div><div class="line">    <span class="keyword">return</span> foo.a + user.age + foo.b; <span class="comment">//user.getAge()也被内联了</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>集合上面的user对象不会逃逸出bar方法，所以内联以及逃逸分析后，bar方法变成</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">bar</span><span class="params">(Foo foo, <span class="keyword">int</span> age)</span></span>&#123;</div><div class="line">    <span class="keyword">return</span> foo.a + age + foo.b; <span class="comment">//user.getAge()被内联了, user对象被标量替换</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>逃逸分析观察下GC</p>
+</blockquote>
+<p>我们来看下逃逸分析对GC的影响，增加JVM参数,默认先关闭逃逸分析 -Xmx10m -Xms10m -XX:-DoEscapeAnalysis -XX:+PrintGC</p>
+<p><img src="/imgs/2018/08/1516.png" width="540" hegiht="320" align="center"></p>
+<p>打开逃逸分析后，观察GC的情况，GC的收集次数是很少的</p>
+<p>[GC (Allocation Failure)  2048K-&gt;520K(9728K), 0.0012356 secs]<br>[GC (Allocation Failure)  2568K-&gt;488K(9728K), 0.0010649 secs]</p>
+<blockquote>
+<p>其他的优化方式</p>
+<p>总结</p>
+<p>尾巴<br>我们在保持业务开发的时候，也要关注底层的原理以及优化方式和方法，</p>
+<p>传送门</p>
+<ul>
+<li><a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.224.353&amp;rep=rep1&amp;type=pdf" target="_blank" rel="external">1999年逃逸分析的经典论文</a></li>
+<li><a href="https://www.oreilly.com/library/view/java-performance-the/9781449363512/ch04.html" target="_blank" rel="external">参考</a></li>
+</ul>
+</blockquote>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Java</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">JVM</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">逃逸分析</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/08/02/JVM优化之逃逸分析/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="java10?-Javaer要跟上时代" class="article article-type-java10?  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -180,37 +319,29 @@
       
         <blockquote>
 <p>Java的历代版本与新增特性</p>
+</blockquote>
 <ul>
-<li>Java5, Java6, Java7, Java8, Java9, Java10</li>
+<li>Java5, Java6, Java7, Java8, Java9, Java10的特性</li>
 </ul>
+<blockquote>
 <p>Java8的特性</p>
-<pre><code>* 函数式编程
-    * 函数柯里化, 引用JS
-* Lambda
-    * 举例
-    * 局部变量final引用
-    * 类型推断，菱形操作符，根据函数参数传递
-* 函数接口
-* 流
-    * 举例
-    * 实现机制
-        * 惰性求值，及早求值
-    * Collect, map, filter(有坑，实际应该叫filtered), 
-    * 使用Stream重构, HomePageService举例 
-    * Optional
-    * 方法引用::, 有序流上操作更高效, 
-* 数据并行化
-    * 影响并行处理的因素，以及举例
-* Peek调试
-</code></pre><p>工作中的用到的Java8</p>
-<pre><code>* 举例
-* 重构
-</code></pre><p>Java8踩坑</p>
-<pre><code>* Prarlell的坑
-</code></pre><p>Java10的新特性以及未来展望</p>
-<pre><code>* 类型推导
-</code></pre></blockquote>
-
+</blockquote>
+<ul>
+<li>函数式编程<ul>
+<li>函数柯里化, 引用JS</li>
+</ul>
+</li>
+<li>Lambda<ul>
+<li>举例</li>
+<li>局部变量final引用</li>
+<li>类型推断，菱形操作符，根据函数参数传递</li>
+</ul>
+</li>
+<li>函数接口</li>
+</ul>
+        
+          <a class="article-more-a" href="/2018/07/05/Javaer要跟上时代/#more">more >></a>
+        
       
 
       
@@ -331,83 +462,9 @@
 </li>
 </ul>
 <p><img src="http://p4.music.126.net/82Yaogn-8POggTh2F_LiyQ==/109951163376879091.jpg" alt="Alt text"></p>
-<ul>
-<li><p>对象的创建<br>  不同的JVM有不同的空间分配算法，分为指针碰撞以及空闲列表算法。</p>
-</li>
-<li><p>对象的内存布局<br>  对象的头部存了很丰富的信息，除了一部分是我们真实意义的数据。哈希码，动态年龄，锁状态标志，线程持有的锁，偏向线程ID，偏向时间戳等</p>
-</li>
-</ul>
-<blockquote>
-<p>垃圾收集器以及内存分配</p>
-</blockquote>
-<ul>
-<li><p>对象已死吗？</p>
-<ul>
-<li>引用计数法，这个通俗一点的说就是如果一个对象被引用就把这个对象的引用计数+1,引用释放后就把相应的引用计数-1。这个算法的效率也很高，但是通常的主流GC收集器是没有选择他的，这其中有个很大大原因是如果两个对象相互引用，但是这两个对象已经完全没有意义了，这个时候引用计数方法就无法回收这部分的数据。</li>
-<li>可达性分析算法，顾名思义就是又一个root根节点，当发现对象并没有root根节点引用的时候，GC就回回收这块内存。可以作为GC的ROOT节点的数据有<ul>
-<li>虚拟机栈（栈帧中的本地变量表）中引用的对象</li>
-<li>方法区中常量引用对象以及类静态属性引用的对象</li>
-<li>本地方法栈里面调用的native方法引用的对象</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>回收方法区<br>   相对而言方法区的回收性价比太差，回收的一般是废弃常量和无用的类。常量池中的数据没有任何一个对象引用那这个常量就会被回收。废弃的类则相对麻烦一些，1. 所有实例被回收 2. ClassLoader 已经被回收 3. 对应的Class对象没有在其他任何地方被引用 </p>
-</li>
-<li><p>GC回收算法</p>
-<ul>
-<li>标记-清楚</li>
-<li>复制</li>
-<li>标记-整理</li>
-<li>分代收集算法</li>
-</ul>
-</li>
-<li><p>HotSpot算法</p>
-<ul>
-<li>GC根节点收集，OopMap, 安全点，安全区域</li>
-</ul>
-</li>
-<li><p>GC垃圾回收器</p>
-<ul>
-<li>Serial New收集器是针对新生代的收集器，采用的是复制算法</li>
-<li>Parallel New（并行）收集器，新生代采用复制算法，老年代采用标记整理</li>
-<li>Parallel Scavenge（并行）收集器，针对新生代，采用复制收集算法</li>
-<li>Serial Old（串行）收集器，新生代采用复制，老年代采用标记清理</li>
-<li>Parallel Old（并行）收集器，针对老年代，标记整理</li>
-<li>CMS收集器，基于标记清理</li>
-<li>G1收集器, 整体上是基于标记清理，局部采用复制 <a href="https://tech.meituan.com/g1.html" target="_blank" rel="external">G1GC解析</a></li>
-</ul>
-</li>
-<li><p>大对象直接进入老年代</p>
-</li>
-<li><p>长期存活的对象直接进入老年代</p>
-</li>
-<li><p>动态对象年龄判断</p>
-</li>
-<li><p>空间分配担保</p>
-</li>
-</ul>
-<blockquote>
-<p>虚拟机执行子系统</p>
-<p>虚拟机类加载机制</p>
-</blockquote>
-<ul>
-<li><p>类加载过程<br>  加载（只是类加载的一个过程）-&gt; 验证 -&gt; 准备 -&gt; 解析 -&gt; 初始化 -&gt; 使用 -&gt; 卸载<br>  加载的过程会做三件事<br>  验证的环节，文件格式 -&gt; 元数据（元数据信息检验） -&gt; 字节码校验（逻辑校验）-&gt; 符号引用验证</p>
-</li>
-<li><p>双亲委派原则</p>
-</li>
-<li><p>分派<br>  静态分派<br>  动态分派</p>
-</li>
-</ul>
-<blockquote>
-<p>类加载以及执行子系统</p>
-</blockquote>
-<ul>
-<li><p>动态代理</p>
-</li>
-<li></li>
-</ul>
-
+        
+          <a class="article-more-a" href="/2018/06/25/深入理解Java虚拟机-读书笔记/#more">more >></a>
+        
       
 
       
@@ -617,145 +674,9 @@
 <li>Start()规则</li>
 <li>Join()规则</li>
 </ul>
-<blockquote>
-<p>双重锁的检查</p>
-</blockquote>
-<ul>
-<li><p>就是那个著名的单例模式</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * Created by bingxin on 2018/5/15.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton instance;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> == instance) &#123;                   <span class="comment">//第一次检查</span></div><div class="line">            <span class="keyword">synchronized</span> (Singleton.class) &#123;      <span class="comment">//加锁</span></div><div class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> == instance) &#123;           <span class="comment">//第二次检查</span></div><div class="line">                    instance = <span class="keyword">new</span> Singleton();   <span class="comment">//问题出在这里</span></div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> instance;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-<li><p>这个地方有问题instance = new Singleton();<br>在ThreadA 和 ThreadB 同时getInstance的时候，这一行有可能会被编译器冲排序</p>
-</li>
-</ul>
-<ol>
-<li>为对象申请内存</li>
-<li>初始化该对象</li>
-<li>将对象指向刚才申请的内存地址</li>
-<li>访问该对象</li>
-</ol>
-<p>在某些JIT编译器上，由于没有违反intra-thread semantics（不会改变单线程执行结果的重排序）规则，2/3将有可能会被重排序，此时Thrad B访问getInstance的时候，第一次检查null == instance就会出问题</p>
-<p>解决此问题有两种方式</p>
-<ol>
-<li>对该变量加上volatile</li>
-<li>基于类初始化的解决方案</li>
-</ol>
-<blockquote>
-<p>CPU内存模型 VS Java内存模型(JMM)</p>
-</blockquote>
-<ul>
-<li>JMM是不同CPU模型之间的内存屏障，不同的CPU内存模型经过JMM的转换对程序员表现出来的则是一致的</li>
-</ul>
-<blockquote>
-<p>Java多线程</p>
-</blockquote>
-<ul>
-<li><p>线程的状态</p>
-<ul>
-<li>NEW</li>
-<li>RUNNABLE</li>
-<li>BLOCKED</li>
-<li>WATING</li>
-<li>TIME_WATING</li>
-<li>TERMINATED</li>
-</ul>
-</li>
-<li><p>中断</p>
-<ul>
-<li>只要抛出了InterrupterException的异常，JVM就会将该线程的中断标志位清除</li>
-<li>安全的中断，主线程里面改变boolean的类变量，从而停止该线程</li>
-</ul>
-</li>
-<li><p>等待&amp;通知</p>
-<ul>
-<li>例子</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">          Thread waitThread = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Wait(), <span class="string">"wait"</span>);</div><div class="line">          waitThread.start();</div><div class="line">          TimeUnit.SECONDS.sleep(<span class="number">1</span>);</div><div class="line"></div><div class="line">          Thread notifyThread = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Notify(), <span class="string">"notify"</span>);</div><div class="line">          notifyThread.start();</div><div class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">      &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Wait</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</div><div class="line">      <span class="meta">@Override</span></div><div class="line">      <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">          <span class="keyword">synchronized</span> (lock) &#123;</div><div class="line">              <span class="keyword">while</span> (flag) &#123;</div><div class="line">                  <span class="keyword">try</span> &#123;</div><div class="line">                      System.out.println(Thread.currentThread() + <span class="string">", flag is true, time:"</span> + <span class="keyword">new</span> SimpleDateFormat(<span class="string">"HH:mm:ss"</span>).format(<span class="keyword">new</span> Date()));</div><div class="line">                      lock.wait();</div><div class="line">                  &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">                  &#125;</div><div class="line">              &#125;</div><div class="line">              System.out.println(Thread.currentThread() + <span class="string">", flag is false, time:"</span> + <span class="keyword">new</span> SimpleDateFormat(<span class="string">"HH:mm:ss"</span>).format(<span class="keyword">new</span> Date()));</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Notify</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</div><div class="line">      <span class="meta">@Override</span></div><div class="line">      <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">          <span class="keyword">synchronized</span> (lock) &#123;</div><div class="line">              <span class="keyword">try</span> &#123;</div><div class="line">                  System.out.println(Thread.currentThread() + <span class="string">" 加锁, time:"</span> + <span class="keyword">new</span> SimpleDateFormat(<span class="string">"HH:mm:ss"</span>).format(<span class="keyword">new</span> Date()));</div><div class="line">                  lock.notify();</div><div class="line">                  flag = <span class="keyword">false</span>;</div><div class="line">                  Thread.sleep(<span class="number">2000</span>);</div><div class="line">              &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line"></div><div class="line">              &#125;</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">synchronized</span> (lock) &#123;</div><div class="line">              <span class="keyword">try</span> &#123;</div><div class="line">                  System.out.println(Thread.currentThread() + <span class="string">" 再次枷锁, time:"</span> + <span class="keyword">new</span> SimpleDateFormat(<span class="string">"HH:mm:ss"</span>).format(<span class="keyword">new</span> Date()));</div><div class="line">                  Thread.sleep(<span class="number">2000</span>);</div><div class="line">              &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">              &#125;</div><div class="line">          &#125;</div><div class="line">      &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
-<ul>
-<li>使用wait()和notify(),notifyAll()要先对对象加锁</li>
-<li><p>notify(),notifyAll()方法调用后，等待线程依然不会从wait()返沪，要等到调用方法释放掉锁之后，等待线程才能从wait()返回</p>
-</li>
-<li><p>等待/通知的经典范式</p>
-</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">waitObj</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">synchronized</span> (lock) &#123; <span class="comment">//获取对象锁</span></div><div class="line">        <span class="keyword">while</span> (xxx) &#123;</div><div class="line">            lock.wait();  </div><div class="line">        &#125;</div><div class="line">        yyy;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">waitObj</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">synchronized</span> (lock) &#123;</div><div class="line">        change();         <span class="comment">//改变条件</span></div><div class="line">        lock.notifyAll(); <span class="comment">//通知排队线程</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<blockquote>
-<p>锁<br>锁，就会涉及到同步的状态的处理，一般要继承JDK提供的抽象类同步器AbstractQueuedSynchronizer，这个类本身提供了很多方法，锁的持有或者释放，已经等待的同步对列</p>
-</blockquote>
-<ul>
-<li>重入锁<ul>
-<li>公平锁</li>
-<li>非公平锁</li>
-</ul>
-</li>
-<li>读写锁<ul>
-<li>读锁</li>
-<li>写锁</li>
-</ul>
-</li>
-</ul>
-<blockquote>
-<p>并法容器和框架</p>
-</blockquote>
-<ul>
-<li>ConcurrentHashMap 其中getKey是以volatile换锁的经典场景，get读取值的时候不需要write值，根据Happens-before的规则编译器提供了多线程每次读取volatile的值都能是最新的。</li>
-<li><p>Java中的阻塞队列</p>
-<ul>
-<li>ArrayBlockingQueue,是数组结构的有界阻塞队列</li>
-<li>LinkedBlockingQueue, 基于链表的有界阻塞队列</li>
-<li>PriorityBlockingQueue, 支持优先级的无界阻塞对列，能自己实现compareTo来修改元素的优先级，同一优先级的元素不保证顺序</li>
-<li>DelayQueue, 使用优先级的无界阻塞对列，设置多久后能才能从队列中取出元素，用处：使用在缓存系统，定时任务调度</li>
-<li>SynchronousQueue, 不存储元素的阻塞队列，就是消费者put之后要等消费者take后才能再次put数据，这个阻塞队列吞吐量要比ArrayBlockingQueue/LinkedBlockingQueue大</li>
-<li>LinkedTransferQueue, 链表无界阻塞队列，增加了transfer和tryTransfer的方法，transfer的方法是如果消费者正在等待，则立刻把相关元素给消费者，如果没有空闲的消费者，则把该元素放在队列上，同时并等待消费者消费完才返回。tryTransfer是尝试消费者能不能接受元素，和transfer的差别是无论消费者是否完成消费，都会立刻返回</li>
-<li>LinkedBlockingDeque, 是一个双向链表的阻塞队列，在多线程的时候竞争会少点</li>
-</ul>
-</li>
-<li><p>Fork/Join框架</p>
-<ul>
-<li>fork join中要分任务为两段，start -&gt; middle, middle -&gt; end, 在主线程中是无法感知子线程出了异常，可以用task.getException()来获取异常信息</li>
-<li>实现原理: </li>
-</ul>
-</li>
-<li><p>Java中的并发工具类</p>
-<ul>
-<li>CountDownLatch，比如有一个线程他要等其他4个线程执行完他才能执行，那就用CountDownLatch，每个线程执行完成的时候需要调用latch减一</li>
-<li>CyclicBarrier，这个类是个屏障类，即所有线程到达后才会不阻塞. 此外这个类CyclicBarrier还提供另一个构造方法，CyclicBarrier（int parties, Runnable barrier-action); 这个构造方法比较有意思，可以在到达屏障后或者到达前触发action</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> CyclicBarrier cyclicBarrier = <span class="keyword">new</span> CyclicBarrier(<span class="number">2</span>, <span class="keyword">this</span>); <span class="comment">//指定2个线程到达后屏障即可开启，开启后调用this.run()</span></div><div class="line"></div><div class="line"><span class="keyword">private</span> Executor executor = Executors.newFixedThreadPool(<span class="number">2</span>);</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">dododo</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">2</span>; i++) &#123;</div><div class="line">        executor.execute(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">                System.out.println(Thread.currentThread().getName());</div><div class="line"></div><div class="line">                <span class="keyword">try</span> &#123;</div><div class="line">                    cyclicBarrier.await();</div><div class="line">                &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line"></div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">    System.out.println(<span class="string">"CyclicBarrierTest run"</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">    CyclicBarrierTest c = <span class="keyword">new</span> CyclicBarrierTest();</div><div class="line">    c.dododo();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<ul>
-<li>CountDownLatch和CyclicBarrier的区别，CountDownLatch计数器只能使用一次，CyclicBarrier这个的计数器可以重复使用</li>
-<li>Semaphore,这个类能控制访问特定资源的线程数量，比如数据库连接这种需要控制访问数量的资源</li>
-<li>Exchange,这个类用于提供两个线程进行数据交换，如果某个等待线程并没有触发exchange就会一直等待。如果有异常情况，exchange的时候可以指定超时时间</li>
-</ul>
-</li>
-</ul>
-<blockquote>
-<p>Java中的线程池</p>
-</blockquote>
-<ul>
-<li>线程池流程：提交任务 -&gt; 判断核心线程数 -&gt; 判断队列长度 -&gt; 判断最大线程数 -&gt; 执行任务 or 丢弃或者抛出异常</li>
-<li>合理的配置线程池一般从以下几个角度考虑：<ul>
-<li>任务的性质，CPU密集 or IO密集, CPU密集的任务可以设置线程数=CPU + 1, IO密集的可以设置CPU * 2</li>
-<li>任务的优先级，高中低</li>
-<li>任务的执行时间</li>
-<li>任务的依赖性，是否依赖其他资源</li>
-</ul>
-</li>
-</ul>
-<blockquote>
-<p>Executor框架</p>
-</blockquote>
-<ul>
-<li>ThreadPoolExecutor分为三种：FixedThreadPool, SingleThreadExecutor, CachedThreadPool<ul>
-<li>FixedThreadPool指定线程数量，KeepAlive为60s，使用无界阻塞队列</li>
-<li>SingleThreadExecutor指定线程数量1，KeepAlive为0s,使用无界阻塞队列</li>
-<li>CachedThreadPool比较特殊，coreSize的初始值为0，maxSize随着需求可以逐渐增加最大是Integer.MAX_VALUE，keepAlive是60s,阻塞队列使用的是SynchronousQueue，使用这个队列会带来一个问题就是，当消费者执行比较慢的时候，maxSize的数量会不断变大，最终会耗尽内存而崩溃</li>
-</ul>
-</li>
-<li>ScheduleThreadPoolExecutor使用DelayQueue队列来作为阻塞队列，延迟执行任务</li>
-</ul>
-
+        
+          <a class="article-more-a" href="/2018/05/07/Java并发编程的艺术笔记/#more">more >></a>
+        
       
 
       
@@ -820,32 +741,9 @@
 <li>公平锁<br>基于volatile修饰的变量lock的时候 state=state+1; 释放锁的时候state=state-1; state是Volatile修饰的变量，多线程之间是共享的，每次修改后该持有的线程会刷新对应的变量副本到主存上。<br>重入锁，如果是之前的线程，那么可以不用排队直接work。</li>
 </ul>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">    <span class="comment">/**</span></div><div class="line">     * Fair version of tryAcquire.  Don't grant access unless</div><div class="line">     * recursive call or no waiters or is first.</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">tryAcquire</span><span class="params">(<span class="keyword">int</span> acquires)</span> </span>&#123;</div><div class="line">        <span class="keyword">final</span> Thread current = Thread.currentThread();</div><div class="line">        <span class="keyword">int</span> c = getState();</div><div class="line">        <span class="keyword">if</span> (c == <span class="number">0</span>) &#123; <span class="comment">//没有锁，直接操作</span></div><div class="line">            <span class="keyword">if</span> (!hasQueuedPredecessors() &amp;&amp;</div><div class="line">                compareAndSetState(<span class="number">0</span>, acquires)) &#123;</div><div class="line">                setExclusiveOwnerThread(current); <span class="comment">//将state设置为当前线程持有，</span></div><div class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (current == getExclusiveOwnerThread()) &#123; <span class="comment">//发现有亲戚，当前线程是持有改state的线程，则state + 1</span></div><div class="line">            <span class="keyword">int</span> nextc = c + acquires;</div><div class="line">            <span class="keyword">if</span> (nextc &lt; <span class="number">0</span>)</div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">"Maximum lock count exceeded"</span>);</div><div class="line">            setState(nextc);</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>; <span class="comment">//拿不到state就去排队</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<ul>
-<li>非公平锁<br>非公平锁就是利用CAS的方式去读&amp;写volatile的变量，如果成功了对其他排队的线程就是不公平的</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * Atomically sets synchronization state to the given updated</div><div class="line"> * value if the current state value equals the expected value.</div><div class="line"> * This operation has memory semantics of a &#123;<span class="doctag">@code</span> volatile&#125; read</div><div class="line"> * and write.</div><div class="line"> *</div><div class="line"> * <span class="doctag">@param</span> expect the expected value</div><div class="line"> * <span class="doctag">@param</span> update the new value</div><div class="line"> * <span class="doctag">@return</span> &#123;<span class="doctag">@code</span> true&#125; if successful. False return indicates that the actual</div><div class="line"> *         value was not equal to the expected value.</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">compareAndSetState</span><span class="params">(<span class="keyword">int</span> expect, <span class="keyword">int</span> update)</span> </span>&#123;</div><div class="line">    <span class="comment">// See below for intrinsics setup to support this</span></div><div class="line">    <span class="keyword">return</span> unsafe.compareAndSwapInt(<span class="keyword">this</span>, stateOffset, expect, update);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<ul>
-<li>排队</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * Acquires in exclusive uninterruptible mode for thread already in</div><div class="line"> * queue. Used by condition wait methods as well as acquire.</div><div class="line"> *</div><div class="line"> * <span class="doctag">@param</span> node the node</div><div class="line"> * <span class="doctag">@param</span> arg the acquire argument</div><div class="line"> * <span class="doctag">@return</span> &#123;<span class="doctag">@code</span> true&#125; if interrupted while waiting</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">acquireQueued</span><span class="params">(<span class="keyword">final</span> Node node, <span class="keyword">int</span> arg)</span> </span>&#123;</div><div class="line">    <span class="keyword">boolean</span> failed = <span class="keyword">true</span>;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">boolean</span> interrupted = <span class="keyword">false</span>;</div><div class="line">        <span class="keyword">for</span> (;;) &#123;</div><div class="line">            <span class="keyword">final</span> Node p = node.predecessor();</div><div class="line">            <span class="keyword">if</span> (p == head &amp;&amp; tryAcquire(arg)) &#123;</div><div class="line">                setHead(node);</div><div class="line">                p.next = <span class="keyword">null</span>; <span class="comment">// help GC</span></div><div class="line">                failed = <span class="keyword">false</span>;</div><div class="line">                <span class="keyword">return</span> interrupted;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span> (shouldParkAfterFailedAcquire(p, node) &amp;&amp;</div><div class="line">                parkAndCheckInterrupt())</div><div class="line">                interrupted = <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        <span class="keyword">if</span> (failed)</div><div class="line">            cancelAcquire(node);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<ul>
-<li>释放锁</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">tryRelease</span><span class="params">(<span class="keyword">int</span> releases)</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> c = getState() - releases; <span class="comment">//state减少</span></div><div class="line">    <span class="keyword">if</span> (Thread.currentThread() != getExclusiveOwnerThread())</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalMonitorStateException();  <span class="comment">//不是当前线程则报错</span></div><div class="line">    <span class="keyword">boolean</span> free = <span class="keyword">false</span>;</div><div class="line">    <span class="keyword">if</span> (c == <span class="number">0</span>) &#123;</div><div class="line">        free = <span class="keyword">true</span>;</div><div class="line">        setExclusiveOwnerThread(<span class="keyword">null</span>);  <span class="comment">//清空当前线程</span></div><div class="line">    &#125;</div><div class="line">    setState(c);</div><div class="line">    <span class="keyword">return</span> free;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<blockquote>
-<p>Synchronized的区别</p>
-</blockquote>
-<ul>
-<li>Synchronized是由JVM来保障语义性的，而ReentrantLock是JDK提供的Java类</li>
-<li>用ReentrantLock的原因<ul>
-<li>ReenTrantLock可以指定是公平锁还是非公平锁。而synchronized只能是非公平锁。所谓的公平锁就是先等待的线程先获得锁。</li>
-<li>ReenTrantLock提供了一个Condition（条件）类，用来实现分组唤醒需要唤醒的线程们，而不是像synchronized要么随机唤醒一个线程要么唤醒全部线程。</li>
-<li>ReenTrantLock提供了一种能够中断等待锁的线程的机制，通过lock.lockInterruptibly()来实现这个机制。</li>
-</ul>
-</li>
-<li>一般情况下使用Synchronized</li>
-</ul>
-
+        
+          <a class="article-more-a" href="/2018/04/17/ReentrantLock锁/#more">more >></a>
+        
       
 
       
@@ -887,112 +785,20 @@
 
 
   
-    <article id="post-JVM内存结构" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+    <article id="post-MySQL引擎" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/04/09/JVM内存结构/">JVM内存结构</a>
+      <a class="article-title" href="/2018/03/30/MySQL引擎/">MySQL引擎</a>
     </h1>
   
 
         
-        <a href="/2018/04/09/JVM内存结构/" class="archive-article-date">
-  	<time datetime="2018-04-08T19:39:09.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-04-08</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>JVM的内存结构，JVM的内存结构分为堆，方法区，栈</p>
-</blockquote>
-<ul>
-<li>程序计数器，字节码解释器工作时就是通过改变这个计数器的值来选取下一条需要执行的字节码指令，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖这个计数器来完成。不会出现OOM, 线程私有</li>
-<li>堆内存，老年代，年轻代(Eden + From Survivor + To Survivor2), 如果在堆中没有内存完成实例分配，并且堆也无法再扩展时，将会抛出OutOfMemoryError异常。线程共享</li>
-<li>方法区，存储类信息、常量、静态变量等数据，是线程共享的区域，为与Java堆区分，方法区还有一个别名Non-Heap(非堆)。当方法区无法满足内存分配需求时，将抛出OutOfMemoryError异常。线程共享</li>
-<li>栈，分为Java虚拟机栈和本地方法栈主要用于方法的执行<ul>
-<li>JVM虚拟栈, 生命周期和线程一致，每个方法被执行的时候都会同时创建一个栈帧（Stack Frame）用于存储局部变量表、操作栈、动态链接、方法出口等信息。每一个方法被调用直至执行完成的过程，就对应着一个栈帧在虚拟机栈中从入栈到出栈的过程。线程私有</li>
-<li>本地方法栈，本地方法栈（Native Method Stacks）与虚拟机栈所发挥的作用是非常相似的，其区别不过是虚拟机栈为虚拟机执行Java方法（也就是字节码）服务，而本地方法栈则是为虚拟机使用到的Native方法服务。</li>
-</ul>
-</li>
-<li><img src="http://p1.music.126.net/f4gLckm_XMHyY81-qPEMFA==/109951163237752956.jpg" alt="Alt text"></li>
-</ul>
-<blockquote>
-<p>Java内存模型</p>
-</blockquote>
-<p>线程间通信的方式有两种，Java在多线程并发时，线程之间的通信采用的是共享内存这种方式</p>
-<ul>
-<li>共享内存</li>
-<li>消息传递</li>
-</ul>
-<p>Java中的实例域，静态域，数组元素都在堆内存中（不同的线程之间可以共享该变量）, 局部变量和异常处理器不会在线程之间共享，线程之间的通信有内存模型（JMM)来协调处理。JMM能在指令重排序的时候通过内存屏障来保障代码的顺序执行。<br>源代码 -&gt; 1.编译器冲排序 -&gt; 2.指令级冲排序 -&gt; 3.内存系统重排序 -&gt; 4.最终执行的内存序列</p>
-<blockquote>
-<p>Happens-before</p>
-</blockquote>
-<ul>
-<li>Happens-before仅仅要求第一个操作结果对后一个操作可见</li>
-<li>对于同一个CPU（单线程）而言如果两个变量的先后不会有依赖，A not Happens-before B,那么JMM就会允许这种重排序</li>
-</ul>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Java</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">JVM</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/04/09/JVM内存结构/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-锁" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/04/03/锁/">锁</a>
-    </h1>
-  
-
-        
-        <a href="/2018/04/03/锁/" class="archive-article-date">
-  	<time datetime="2018-04-03T15:10:19.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-04-03</time>
+        <a href="/2018/03/30/MySQL引擎/" class="archive-article-date">
+  	<time datetime="2018-03-30T12:33:54.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-30</time>
 </a>
         
       </header>
@@ -1011,7 +817,7 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/04/03/锁/">展开全文 >></a>
+          <a class="article-more-a" href="/2018/03/30/MySQL引擎/">展开全文 >></a>
         </p>
       
 
@@ -1028,7 +834,7 @@
   
   
     <nav id="page-nav">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
     </nav>
   
 
@@ -1138,15 +944,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1154,11 +960,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
+                <a href="javascript:void(0)" class="js-tag color4">Jvm</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1211,6 +1013,14 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">逃逸分析</a>
               </li>
             
             <div class="clearfix"></div>

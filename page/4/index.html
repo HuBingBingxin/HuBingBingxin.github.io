@@ -158,132 +158,6 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-Java工程师找工作前的准备-持续更新版" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/02/Java工程师找工作前的准备-持续更新版/">Java工程师找工作前的准备-持续更新版</a>
-    </h1>
-  
-
-        
-        <a href="/2018/02/02/Java工程师找工作前的准备-持续更新版/" class="archive-article-date">
-  	<time datetime="2018-02-01T17:25:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-01</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>要时刻准备和提醒自己</p>
-</blockquote>
-<ul>
-<li>这是个伟大的时代，或者说也是个渺小的时代，不幸的是我们没有办法选择这个时代，只能顺应潮流，争取做时代的弄潮儿</li>
-<li>这篇文章是写给我自己同时也给那些所有迷茫的工程师们</li>
-</ul>
-<blockquote>
-<p>记录每次印象深刻的事情</p>
-</blockquote>
-<ul>
-<li>xxx</li>
-<li>xxx</li>
-<li>xxx</li>
-</ul>
-        
-          <a class="article-more-a" href="/2018/02/02/Java工程师找工作前的准备-持续更新版/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">java</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">工作</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/02/02/Java工程师找工作前的准备-持续更新版/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-初识netty" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/02/初识netty/">初识netty</a>
-    </h1>
-  
-
-        
-        <a href="/2018/02/02/初识netty/" class="archive-article-date">
-  	<time datetime="2018-02-01T17:22:52.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-01</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/02/02/初识netty/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
     <article id="post-redis-vs-memcache" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -772,47 +646,10 @@
 <li><p>用Stream的方式</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">List&lt;Fuck&gt; fuckList = Lists.newArrayList();</div><div class="line">Map&lt;Long, Fuck&gt; fuckMap = fuckList.stream()</div><div class="line">  .collect(Collectors.toMap(Fuck::getId, fuck -&gt; fuck, (fuck1, fuck2) -&gt; fuck1));</div></pre></td></tr></table></figure>
 </li>
-<li><p>原来的从List中取出某个元素集合的方式</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">List&lt;Fuck&gt; fuckList = Lists.newArrayList();</div><div class="line">List&lt;Long&gt; fuckIds = Lists.newArrayList();</div><div class="line"><span class="keyword">for</span> (Fuck fuck : fuckList)&#123;</div><div class="line">  fuckIds.add(fuck.getId());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-<li><p>用Stream的方式</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">List&lt;Fuck&gt; fuckList = Lists.newArrayList();</div><div class="line">List&lt;Long&gt; fuckIds = fuckList.stream().map(Fuck::getId)</div><div class="line">					.filter(Fuck::isValid)</div><div class="line">                    .collect(Collectors.toList());</div></pre></td></tr></table></figure>
-</li>
 </ul>
-<p>暂时举的例子，很好地说明了情况，stram的流基本省去了for循环，而且还能在某项操作后继续处理</p>
-<blockquote>
-<p>函数式编程</p>
-</blockquote>
-<ul>
-<li>类型推断<ul>
-<li>使用菱形操作符，根据变量类型做推断</li>
-<li>使用菱形操作符，根据方法签名做推断<br>JAVA里面重要的函数接口<br><img src="http://p3.music.126.net/6oK61-WdjxxcmzYT0zdWYg==/109951163177954435.jpg" alt="Alt text"></li>
-</ul>
-</li>
-</ul>
-<blockquote>
-<p>stream流</p>
-</blockquote>
-<ul>
-<li><p>惰性求值方法 &amp; 及早求值方法<br>最终不产生新集合的方法叫作惰性求值方法，而像count这样最终会从Stream产生值的方法叫作及早求值方法<br>就是说，Stream的惰性求值方法不会被真正执行，在调用及早求值方法的时候整个调用链才会被执行</p>
-</li>
-<li><p>flatMap方法</p>
-</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">List&lt;Integer&gt; together = Stream.of(asList(<span class="number">1</span>, <span class="number">2</span>), asList(<span class="number">3</span>, <span class="number">4</span>))</div><div class="line">                         .flatMap(numbers -&gt; numbers.stream())</div><div class="line">                         .collect(toList());</div><div class="line">assertEquals(asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>), together);</div></pre></td></tr></table></figure>
-<ul>
-<li>reduce, 可以实现从一组值中生成一个值</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> sum = Stream.of(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>)</div><div class="line">          .reduce(<span class="number">0</span>, (acc, element) -&gt; acc + element);</div><div class="line">System.out.println(sum);</div></pre></td></tr></table></figure>
-<ul>
-<li>在函数返回值上用到Stream</li>
-</ul>
-<blockquote>
-<p>遇到的问题</p>
-<p>优点</p>
-<p>缺点</p>
-</blockquote>
-
+        
+          <a class="article-more-a" href="/2017/10/11/Java8之stream/#more">more >></a>
+        
       
 
       
@@ -854,9 +691,63 @@
 
 
   
+    <article id="post-当我们建索引的时候，我们在想什么？" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/05/当我们建索引的时候，我们在想什么？/">当我们建索引的时候，我们在想什么？</a>
+    </h1>
+  
+
+        
+        <a href="/2017/07/05/当我们建索引的时候，我们在想什么？/" class="archive-article-date">
+  	<time datetime="2017-07-05T13:47:48.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-07-05</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>我么首先来看一个联合索引的例子:</p>
+</blockquote>
+<p>有一个付款记录表，保存用户的付款信息，表结构如下：<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`PayRecord`</span> (</div><div class="line">  <span class="string">`Id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'Id主键'</span>,</div><div class="line">  <span class="string">`UserId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'用户Id'</span>,</div><div class="line">  <span class="string">`Type`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'购买类型'</span>,</div><div class="line">  <span class="string">`GoodId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'商品Id'</span>,</div><div class="line">  <span class="string">`OrderId`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'商城订单Id'</span>,</div><div class="line">  <span class="string">`db_create_time`</span> <span class="keyword">timestamp</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">'2000-01-01 00:00:00'</span>,</div><div class="line">  <span class="string">`db_update_time`</span> <span class="keyword">timestamp</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">ON</span> <span class="keyword">UPDATE</span> <span class="keyword">CURRENT_TIMESTAMP</span>,</div><div class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`Id`</span>)</div><div class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COMMENT</span>=<span class="string">'购买详情信息'</span>;</div></pre></td></tr></table></figure></p>
+<p>这个表是保存用户对商品的付款记录信息表，如果我们有查询select * from PayRecord where UserId = ? and GoodId = ? limit ?;<br>现在如果这张表大概250w的数据行，我们来看下mysql给出的explain:<br>
+        
+          <a class="article-more-a" href="/2017/07/05/当我们建索引的时候，我们在想什么？/#more">more >></a>
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/07/05/当我们建索引的时候，我们在想什么？/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span>
     </nav>
   
 
@@ -966,15 +857,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -982,11 +873,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
+                <a href="javascript:void(0)" class="js-tag color4">Jvm</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1039,6 +926,14 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">逃逸分析</a>
               </li>
             
             <div class="clearfix"></div>

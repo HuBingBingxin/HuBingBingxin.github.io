@@ -18,7 +18,7 @@
 <meta property="og:image" content="http://p4.music.126.net/CQwCS3m4B0MNzsWjDHaUeA==/109951163170749163.jpg">
 <meta property="og:image" content="http://p4.music.126.net/BhVHZaVg2f1fZDxhYNdm3g==/109951163170794286.jpg">
 <meta property="og:image" content="http://p4.music.126.net/tt0Vv-Wh0gxa4MHXl6uf-g==/109951163170754277.jpg">
-<meta property="og:updated_time" content="2018-03-06T11:51:24.000Z">
+<meta property="og:updated_time" content="2018-07-26T07:07:42.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="消息大宝剑之kafka">
 <meta name="twitter:description" content="为何使用消息系统   解耦在项目启动之初来预测将来项目会碰到什么需求，是极其困难的。消息系统在处理过程中间插入了一个隐含的、基于数据的接口层，两边的处理过程都要实现这一接口。这允许你独立的扩展或修改两边的处理过程，只要确保它们遵守同样的接口约束 冗余有些情况下，处理数据的过程会失败。除非数据被持久化，否则将造成丢失。消息队列把数据进行持久化直到它们已经被完全处理，通过这一方式规避了数据丢失风险。">
@@ -188,7 +188,10 @@
 <ul>
 <li>解耦<br>在项目启动之初来预测将来项目会碰到什么需求，是极其困难的。消息系统在处理过程中间插入了一个隐含的、基于数据的接口层，两边的处理过程都要实现这一接口。这允许你独立的扩展或修改两边的处理过程，只要确保它们遵守同样的接口约束</li>
 <li>冗余<br>有些情况下，处理数据的过程会失败。除非数据被持久化，否则将造成丢失。消息队列把数据进行持久化直到它们已经被完全处理，通过这一方式规避了数据丢失风险。许多消息队列所采用的”插入-获取-删除”范式中，在把一个消息从队列中删除之前，需要你的处理系统明确的指出该消息已经被处理完毕，从而确保你的数据被安全的保存直到你使用完毕</li>
-<li>扩展性<br>因为消息队列解耦了你的处理过程，所以增大消息入队和处理的频率是很容易的，只要另外增加处理过程即可。不需要改变代码、不需要调节参数。扩展就像调大电力按钮一样简单<a id="more"></a></li>
+<li>扩展性<br>因为消息队列解耦了你的处理过程，所以增大消息入队和处理的频率是很容易的，只要另外增加处理过程即可。不需要改变代码、不需要调节参数。扩展就像调大电力按钮一样简单</li>
+</ul>
+<a id="more"></a>
+<ul>
 <li>灵活性 &amp; 峰值处理能力<br>在访问量剧增的情况下，应用仍然需要继续发挥作用，但是这样的突发流量并不常见；如果为以能处理这类峰值访问为标准来投入资源随时待命无疑是巨大的浪费。使用消息队列能够使关键组件顶住突发的访问压力，而不会因为突发的超负荷的请求而完全崩溃</li>
 <li>可恢复性</li>
 <li>顺序保证<br>在大多使用场景下，数据处理的顺序都很重要。大部分消息队列本来就是排序的，并且能保证数据会按照特定的顺序来处理。Kafka保证一个Partition内的消息的有序性</li>
@@ -352,7 +355,7 @@
       <i class="icon-circle-left"></i>
       <div class="article-nav-title">
         
-          jvm的深坑
+          Jvm的深坑
         
       </div>
     </a>
@@ -483,15 +486,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -499,11 +502,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
+                <a href="javascript:void(0)" class="js-tag color4">Jvm</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -556,6 +555,14 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">逃逸分析</a>
               </li>
             
             <div class="clearfix"></div>

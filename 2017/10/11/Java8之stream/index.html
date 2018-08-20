@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="bingbingxin">
 <meta property="og:description" content="其实用Java8的时间却是不长，之前还在Java6的圈子中打转，直到机缘巧合的遇到了新同事，他用Java8活灵活现，尤其是函数式编程。于是我便好奇心爆棚研究了一下，写下自己研究的相关历程，以供后面回顾或者有缘人看到。  举例   原来的从List转Map方式 12345List&amp;lt;Fuck&amp;gt; fuckList = Lists.newArrayList();Map&amp;lt;Long, Fuc">
 <meta property="og:image" content="http://p3.music.126.net/6oK61-WdjxxcmzYT0zdWYg==/109951163177954435.jpg">
-<meta property="og:updated_time" content="2018-03-26T12:21:35.000Z">
+<meta property="og:updated_time" content="2018-07-16T03:35:00.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java8之stream">
 <meta name="twitter:description" content="其实用Java8的时间却是不长，之前还在Java6的圈子中打转，直到机缘巧合的遇到了新同事，他用Java8活灵活现，尤其是函数式编程。于是我便好奇心爆棚研究了一下，写下自己研究的相关历程，以供后面回顾或者有缘人看到。  举例   原来的从List转Map方式 12345List&amp;lt;Fuck&amp;gt; fuckList = Lists.newArrayList();Map&amp;lt;Long, Fuc">
@@ -191,6 +191,9 @@
 <li><p>用Stream的方式</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">List&lt;Fuck&gt; fuckList = Lists.newArrayList();</div><div class="line">Map&lt;Long, Fuck&gt; fuckMap = fuckList.stream()</div><div class="line">  .collect(Collectors.toMap(Fuck::getId, fuck -&gt; fuck, (fuck1, fuck2) -&gt; fuck1));</div></pre></td></tr></table></figure>
 </li>
+</ul>
+<a id="more"></a>
+<ul>
 <li><p>原来的从List中取出某个元素集合的方式</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">List&lt;Fuck&gt; fuckList = Lists.newArrayList();</div><div class="line">List&lt;Long&gt; fuckIds = Lists.newArrayList();</div><div class="line"><span class="keyword">for</span> (Fuck fuck : fuckList)&#123;</div><div class="line">  fuckIds.add(fuck.getId());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
@@ -474,15 +477,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -490,11 +493,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">jvm</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
+                <a href="javascript:void(0)" class="js-tag color4">Jvm</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -547,6 +546,14 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JVM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">逃逸分析</a>
               </li>
             
             <div class="clearfix"></div>
