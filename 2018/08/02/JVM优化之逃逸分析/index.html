@@ -16,12 +16,12 @@
 <meta property="og:site_name" content="bingbingxin">
 <meta property="og:description" content="之前的小伙伴介绍过逃逸分析，现在自己想深入研究一下逃逸分析具体是什么，JVM帮我们做了什么，为什么要做，以及怎么做的？ 什么是逃逸分析？  逃逸分析首先要划分范围，就是说在我们的日常代码里存在着不同级别的逃逸。逃逸分析实际上是JVM的一种为优化提供支持的分析手段，我们都知道javac只是原封不动的翻译了我们的代码(静态编译)，具体的优化还是要靠JVM的动态编译(JIT,分为C1，C2，C1 + C">
 <meta property="og:image" content="http://bingbingxin.com/imgs/compiler.png">
-<meta property="og:image" content="http://bingbingxin.com/imgs/jvmdy-1-20180816-2037.png">
 <meta property="og:image" content="http://bingbingxin.com/imgs/gcdynamic-2-2018-0816-2039.png">
+<meta property="og:image" content="http://bingbingxin.com/imgs/jvmdy-1-20180816-2037.png">
 <meta property="og:image" content="http://bingbingxin.com/imgs/2018/08/0820.png">
 <meta property="og:image" content="http://bingbingxin.com/imgs/2018/08/1404.png">
 <meta property="og:image" content="http://bingbingxin.com/imgs/2018/08/1516.png">
-<meta property="og:updated_time" content="2018-08-20T11:46:27.000Z">
+<meta property="og:updated_time" content="2018-08-24T02:04:54.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM优化之逃逸分析">
 <meta name="twitter:description" content="之前的小伙伴介绍过逃逸分析，现在自己想深入研究一下逃逸分析具体是什么，JVM帮我们做了什么，为什么要做，以及怎么做的？ 什么是逃逸分析？  逃逸分析首先要划分范围，就是说在我们的日常代码里存在着不同级别的逃逸。逃逸分析实际上是JVM的一种为优化提供支持的分析手段，我们都知道javac只是原封不动的翻译了我们的代码(静态编译)，具体的优化还是要靠JVM的动态编译(JIT,分为C1，C2，C1 + C">
@@ -191,6 +191,7 @@
 <p>逃逸分析首先要划分范围，就是说在我们的日常代码里存在着不同级别的逃逸。逃逸分析实际上是JVM的一种为优化提供支持的分析手段，我们都知道javac只是原封不动的翻译了我们的代码(静态编译)，具体的优化还是要靠JVM的动态编译(JIT,分为C1，C2，C1 + C2，这个可以另一篇文章介绍)。</p>
 </blockquote>
 <p>还是给个图来表示静态编译到动态编译吧:<br><img src="/imgs/compiler.png" width="800" hegiht="400" align="center"></p>
+<a id="more"></a>
 <p>逃逸分析的优化手段我们可能接触的不多，但是底层（JVM）帮我们开发者做了很多，不是有一句话是说JVM是最好的Java软件也不为过。</p>
 <blockquote>
 <p>逃逸分析的范围分为两个：方法逃逸 &amp; 线程逃逸</p>
@@ -219,9 +220,9 @@
 <p>我们引入一个简单的新类User，只有两个属性</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> String name;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</div><div class="line">&#125; <span class="comment">//get set 以及构造方法省略</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">bar</span><span class="params">(Foo foo)</span></span>&#123;</div><div class="line">    User user = <span class="keyword">new</span> User(<span class="number">23</span>);</div><div class="line">    <span class="keyword">return</span> foo.getA() + foo.getB() + user.getAge();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">    Foo foo = <span class="keyword">new</span> Foo();</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1000000000</span>; i++)&#123;</div><div class="line">    	foo.foo(<span class="number">4</span>, <span class="number">45</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>关闭逃逸分析看下jmap的对象占用 -server -XX:-DoEscapeAnalysis</p>
-<p><img src="/imgs/jvmdy-1-20180816-2037.png" width="640" hegiht="300" align="center"></p>
-<p>现在打开逃逸分析看下这个User对象的占用 -server -XX:-DoEscapeAnalysis</p>
 <p><img src="/imgs/gcdynamic-2-2018-0816-2039.png" width="640" hegiht="300" align="center"></p>
+<p>现在打开逃逸分析看下这个User对象的占用 -server -XX:+DoEscapeAnalysis</p>
+<p><img src="/imgs/jvmdy-1-20180816-2037.png" width="640" hegiht="300" align="center"></p>
 <p>对比很明显，在关闭逃逸分析的情况下这个User对象一共占了101225160bytes, 关闭逃逸分析之后User对象占用2169024, 差了好几个数量级。只剩9w左右的对象在堆上实例化了，这表明user的属性被标量替换了。我们来打开JVM的日志看下实际的优化方式，先打开编译器看下JIT编译日志，额外说一点，触发JIT编译是有条件的</p>
 <blockquote>
 <p>JIT编译</p>
@@ -378,6 +379,15 @@
   
 <nav id="article-nav">
   
+    <a href="/2018/08/23/DDD领域模型/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          DDD领域模型
+        
+      </div>
+    </a>
+  
   
     <a href="/2018/07/05/Javaer要跟上时代/" id="article-nav-older" class="article-nav-link-wrap">
       <div class="article-nav-title">Javaer要跟上时代</div>
@@ -488,7 +498,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">Java面试</a>
+                <a href="javascript:void(0)" class="js-tag color1">-DDD -领域模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">Binlog</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -516,15 +534,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">JDK</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -576,11 +590,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
+                <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
+                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
               </li>
             
             <div class="clearfix"></div>

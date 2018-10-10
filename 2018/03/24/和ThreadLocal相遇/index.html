@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="bingbingxin">
 <meta property="og:description" content="ThreadLocal是什么   ThreadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据  放出ThreadLocal的set &amp;amp; get的源码   12345678public void set(T value) &amp;#123;    Thread t = Thread.currentThread();    ThreadLoca">
 <meta property="og:image" content="http://p4.music.126.net/TmxRoLwmEI-J-aamYlzvtQ==/109951163204787464.jpg">
-<meta property="og:updated_time" content="2018-03-24T07:00:36.000Z">
+<meta property="og:updated_time" content="2018-08-22T07:30:26.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="和ThreadLocal相遇">
 <meta name="twitter:description" content="ThreadLocal是什么   ThreadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据  放出ThreadLocal的set &amp;amp; get的源码   12345678public void set(T value) &amp;#123;    Thread t = Thread.currentThread();    ThreadLoca">
@@ -199,7 +199,7 @@
 <li>ThreadLocalMap是ThreadLocal的一个静态内部类，但是它并没有实现Map接口</li>
 </ul>
 <p>在ThreadLoalMap中，也是初始化一个大小16的Entry数组，Entry对象用来保存每一个key-value键值对，只不过这里的key永远都是ThreadLocal对象，通过ThreadLocal对象的set方法，结果把ThreadLocal对象自己当做key，放进了ThreadLoalMap中</p>
-<p><img src="http://p4.music.126.net/TmxRoLwmEI-J-aamYlzvtQ==/109951163204787464.jpg" alt="Alt text"></p>
+<p><img src="http://p4.music.126.net/TmxRoLwmEI-J-aamYlzvtQ==/109951163204787464.jpg" width="800" hegiht="400" align="center"></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(ThreadLocal&lt;?&gt; key, Object value)</span> </span>&#123;</div><div class="line">    Entry[] tab = table;</div><div class="line">    <span class="keyword">int</span> len = tab.length;</div><div class="line">    <span class="keyword">int</span> i = key.threadLocalHashCode &amp; (len-<span class="number">1</span>); <span class="comment">//每个ThreadLocal对象都会生成一个threadLocalHashCode</span></div><div class="line"></div><div class="line">    <span class="keyword">for</span> (Entry e = tab[i];</div><div class="line">         e != <span class="keyword">null</span>;                        <span class="comment">//当这个位置上的Entry为空时继续</span></div><div class="line">         e = tab[i = nextIndex(i, len)]) &#123; <span class="comment">//当前e == null, 则继续寻找下一个位置</span></div><div class="line">        ThreadLocal&lt;?&gt; k = e.get();        <span class="comment">//getKey</span></div><div class="line"></div><div class="line">        <span class="keyword">if</span> (k == key) &#123;    </div><div class="line">            e.value = value;               <span class="comment">//如果是同一个key就会把value替换掉</span></div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (k == <span class="keyword">null</span>) &#123;</div><div class="line">            replaceStaleEntry(key, value, i); <span class="comment">//如果key为空，说明之前这个位置上没有数据</span></div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    tab[i] = <span class="keyword">new</span> Entry(key, value);</div><div class="line">    <span class="keyword">int</span> sz = ++size;</div><div class="line">    <span class="keyword">if</span> (!cleanSomeSlots(i, sz) &amp;&amp; sz &gt;= threshold) <span class="comment">//如果现在的table size大于了threshold就会rehash</span></div><div class="line">        rehash();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>下面我们来看一下rehash这个函数的源码</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">rehash</span><span class="params">()</span> </span>&#123;</div><div class="line">    expungeStaleEntries(); <span class="comment">//这个函数是释放弱引用</span></div><div class="line"></div><div class="line">    <span class="comment">// Use lower threshold for doubling to avoid hysteresis</span></div><div class="line">    <span class="keyword">if</span> (size &gt;= threshold - threshold / <span class="number">4</span>) <span class="comment">//size大于 threshold * 3/4则resize(),把原来的数据放入新的table数据</span></div><div class="line">        resize();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -327,11 +327,11 @@
   
 <nav id="article-nav">
   
-    <a href="/2018/03/28/2018面试记录/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2018/03/30/分布式锁/" id="article-nav-newer" class="article-nav-link-wrap">
       <i class="icon-circle-left"></i>
       <div class="article-nav-title">
         
-          2018面试记录
+          分布式锁
         
       </div>
     </a>
@@ -446,7 +446,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">Java面试</a>
+                <a href="javascript:void(0)" class="js-tag color1">-DDD -领域模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">Binlog</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -474,15 +482,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">JDK</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -534,11 +538,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
+                <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
+                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
               </li>
             
             <div class="clearfix"></div>

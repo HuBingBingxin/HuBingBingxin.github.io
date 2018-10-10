@@ -158,6 +158,242 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Redis分布式锁研究" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/21/Redis分布式锁研究/">Redis分布式锁研究</a>
+    </h1>
+  
+
+        
+        <a href="/2018/05/21/Redis分布式锁研究/" class="archive-article-date">
+  	<time datetime="2018-05-21T15:34:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-05-21</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/05/21/Redis分布式锁研究/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-Java并发编程的艺术笔记" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/07/Java并发编程的艺术笔记/">Java并发编程的艺术笔记</a>
+    </h1>
+  
+
+        
+        <a href="/2018/05/07/Java并发编程的艺术笔记/" class="archive-article-date">
+  	<time datetime="2018-05-07T15:38:46.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-05-07</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>Happens-before规则</p>
+</blockquote>
+<ul>
+<li>程序顺序性规则</li>
+<li>监视器锁规则</li>
+<li>Volatile变量规则</li>
+<li>传递性</li>
+<li>Start()规则</li>
+<li>Join()规则</li>
+</ul>
+        
+          <a class="article-more-a" href="/2018/05/07/Java并发编程的艺术笔记/#more">more >></a>
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">-Java -并发编程</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/05/07/Java并发编程的艺术笔记/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-ReentrantLock锁" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/17/ReentrantLock锁/">ReentrantLock锁</a>
+    </h1>
+  
+
+        
+        <a href="/2018/04/17/ReentrantLock锁/" class="archive-article-date">
+  	<time datetime="2018-04-16T19:50:20.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-04-16</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>ReentrantLock实际上是在锁内存，重入锁</p>
+</blockquote>
+<ul>
+<li>公平锁<br>基于volatile修饰的变量lock的时候 state=state+1; 释放锁的时候state=state-1; state是Volatile修饰的变量，多线程之间是共享的，每次修改后该持有的线程会刷新对应的变量副本到主存上。<br>重入锁，如果是之前的线程，那么可以不用排队直接work。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">    <span class="comment">/**</span></div><div class="line">     * Fair version of tryAcquire.  Don't grant access unless</div><div class="line">     * recursive call or no waiters or is first.</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">tryAcquire</span><span class="params">(<span class="keyword">int</span> acquires)</span> </span>&#123;</div><div class="line">        <span class="keyword">final</span> Thread current = Thread.currentThread();</div><div class="line">        <span class="keyword">int</span> c = getState();</div><div class="line">        <span class="keyword">if</span> (c == <span class="number">0</span>) &#123; <span class="comment">//没有锁，直接操作</span></div><div class="line">            <span class="keyword">if</span> (!hasQueuedPredecessors() &amp;&amp;</div><div class="line">                compareAndSetState(<span class="number">0</span>, acquires)) &#123;</div><div class="line">                setExclusiveOwnerThread(current); <span class="comment">//将state设置为当前线程持有，</span></div><div class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (current == getExclusiveOwnerThread()) &#123; <span class="comment">//发现有亲戚，当前线程是持有改state的线程，则state + 1</span></div><div class="line">            <span class="keyword">int</span> nextc = c + acquires;</div><div class="line">            <span class="keyword">if</span> (nextc &lt; <span class="number">0</span>)</div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">"Maximum lock count exceeded"</span>);</div><div class="line">            setState(nextc);</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>; <span class="comment">//拿不到state就去排队</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+        
+          <a class="article-more-a" href="/2018/04/17/ReentrantLock锁/#more">more >></a>
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">JAVA</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">锁</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/04/17/ReentrantLock锁/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-MySQL引擎" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/30/MySQL引擎/">MySQL引擎</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/30/MySQL引擎/" class="archive-article-date">
+  	<time datetime="2018-03-30T12:33:54.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-30</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/30/MySQL引擎/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="post-分布式锁" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -214,74 +450,6 @@
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2018/03/30/分布式锁/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-2018面试记录" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/03/28/2018面试记录/">2018面试记录</a>
-    </h1>
-  
-
-        
-        <a href="/2018/03/28/2018面试记录/" class="archive-article-date">
-  	<time datetime="2018-03-27T17:51:47.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-27</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>即将面试的</p>
-</blockquote>
-<ul>
-<li>周一上午11点</li>
-<li>周一下午7:00</li>
-<li>周二晚上7:30</li>
-</ul>
-        
-          <a class="article-more-a" href="/2018/03/28/2018面试记录/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">Java面试</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/03/28/2018面试记录/">展开全文 >></a>
         </p>
       
 
@@ -577,41 +745,11 @@
 <li>本地方法栈，本地方法栈（Native Method Stacks）与虚拟机栈所发挥的作用是非常相似的，其区别不过是虚拟机栈为虚拟机执行Java方法（也就是字节码）服务，而本地方法栈则是为虚拟机使用到的Native方法服务。</li>
 </ul>
 </li>
-<li><img src="http://p1.music.126.net/f4gLckm_XMHyY81-qPEMFA==/109951163237752956.jpg" alt="Alt text"></li>
 </ul>
-<blockquote>
-<p>Java内存模型</p>
-</blockquote>
-<p>线程间通信的方式有两种，Java在多线程并发时，线程之间的通信采用的是共享内存这种方式</p>
-<ul>
-<li>共享内存</li>
-<li>消息传递</li>
-</ul>
-<p>Java中的实例域，静态域，数组元素都在堆内存中（不同的线程之间可以共享该变量）, 局部变量和异常处理器不会在线程之间共享，线程之间的通信有内存模型（JMM)来协调处理。JMM能在指令重排序的时候通过内存屏障来保障代码的顺序执行。<br>源代码 -&gt; 1.编译器冲排序 -&gt; 2.指令级冲排序 -&gt; 3.内存系统重排序 -&gt; 4.最终执行的内存序列</p>
-<blockquote>
-<p>Happens-before</p>
-</blockquote>
-<ul>
-<li>Happens-before仅仅要求第一个操作结果对后一个操作可见</li>
-<li>对于同一个CPU（单线程）而言如果两个变量的先后不会有依赖，A not Happens-before B,那么JMM就会允许这种重排序</li>
-</ul>
-<blockquote>
-<p>Jvm原理</p>
-</blockquote>
-<ul>
-<li><a href="http://www.importnew.com/1993.html" target="_blank" rel="external">深入浅出Java垃圾回收机制</a></li>
-<li><a href="https://mp.weixin.qq.com/s?__biz=MjM5NjQ5MTI5OA==&amp;mid=2651747273&amp;idx=1&amp;sn=7f947064a41eeecb6816a5d0838581ae" target="_blank" rel="external">实际案例GC优化</a></li>
-<li><a href="https://blog.csdn.net/jiafu1115/article/details/7024323" target="_blank" rel="external">CG优化案例</a></li>
-<li><a href="http://www.importnew.com/20354.html" target="_blank" rel="external">GC垃圾收集器</a>, 垃圾收集器（老年代GC）<ul>
-<li>Serial收集器，标记-清除-整理，serial收集器应用于小的存储器和少量的CPU</li>
-<li>Parallel收集器，吞吐量优先垃圾收集器</li>
-<li>ParallelOld收集器，标记-汇总-压缩算法，会把要删除的先放在一个统一的地方</li>
-<li>CMS垃圾收集器，初始标记 -&gt; 并发标记, 低延迟垃圾收集器, 会更多的占用CPU</li>
-<li>G1GC收集器，每个对象被分配到不同的网格中，随后执行垃圾回收。当一个区域填满之后，对象被转移到另一个区域，并再执行一次垃圾回收</li>
-</ul>
-</li>
-</ul>
-
+<p><img src="http://p1.music.126.net/f4gLckm_XMHyY81-qPEMFA==/109951163237752956.jpg" width="800" hegiht="400" align="center"></p>
+        
+          <a class="article-more-a" href="/2018/02/28/Jvm的深坑/#more">more >></a>
+        
       
 
       
@@ -653,200 +791,9 @@
 
 
   
-    <article id="post-消息大宝剑之kafka" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/28/消息大宝剑之kafka/">消息大宝剑之kafka</a>
-    </h1>
-  
-
-        
-        <a href="/2018/02/28/消息大宝剑之kafka/" class="archive-article-date">
-  	<time datetime="2018-02-27T17:07:52.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-27</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>为何使用消息系统</p>
-</blockquote>
-<ul>
-<li>解耦<br>在项目启动之初来预测将来项目会碰到什么需求，是极其困难的。消息系统在处理过程中间插入了一个隐含的、基于数据的接口层，两边的处理过程都要实现这一接口。这允许你独立的扩展或修改两边的处理过程，只要确保它们遵守同样的接口约束</li>
-<li>冗余<br>有些情况下，处理数据的过程会失败。除非数据被持久化，否则将造成丢失。消息队列把数据进行持久化直到它们已经被完全处理，通过这一方式规避了数据丢失风险。许多消息队列所采用的”插入-获取-删除”范式中，在把一个消息从队列中删除之前，需要你的处理系统明确的指出该消息已经被处理完毕，从而确保你的数据被安全的保存直到你使用完毕</li>
-<li>扩展性<br>因为消息队列解耦了你的处理过程，所以增大消息入队和处理的频率是很容易的，只要另外增加处理过程即可。不需要改变代码、不需要调节参数。扩展就像调大电力按钮一样简单</li>
-</ul>
-        
-          <a class="article-more-a" href="/2018/02/28/消息大宝剑之kafka/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">java</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">kafka</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/02/28/消息大宝剑之kafka/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-Redis原理和应用" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/09/Redis原理和应用/">Redis原理和应用</a>
-    </h1>
-  
-
-        
-        <a href="/2018/02/09/Redis原理和应用/" class="archive-article-date">
-  	<time datetime="2018-02-09T15:36:07.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>redis介绍</p>
-</blockquote>
-<p>在Redis的中文官网上是这么介绍这个强大的内存数据库的：<br>Redis是一个开源的，内存中的数据结构存储系统，它可以用作数据库、缓存和消息中间件。它支持多种类型的数据结构，如字符串，散列，列表（lists），集合（sets），有序集合（sortedsets）与范围查询，bitmaps，hyperloglogs和地理空间（geospatial）索引半径查询。Redis内置了复制（replication），LUA脚本（Luascripting），LRU驱动事件（LRUeviction），事务（transactions）和不同级别的磁盘持久化（persistence），并通过Redis哨兵（Sentinel）&gt;和自动分区（Cluster）提供高可用性（highavailability）。</p>
-<blockquote>
-<p>redis的常用数据类型</p>
-</blockquote>
-<p><img src="http://static.oschina.net/uploads/img/201504/21184255_Ubrs.jpg" alt="Alt text"></p>
-        
-          <a class="article-more-a" href="/2018/02/09/Redis原理和应用/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">redis</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">缓存</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/02/09/Redis原理和应用/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-消息中间件之RocketMQ" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/09/消息中间件之RocketMQ/">消息中间件之RocketMQ</a>
-    </h1>
-  
-
-        
-        <a href="/2018/02/09/消息中间件之RocketMQ/" class="archive-article-date">
-  	<time datetime="2018-02-09T14:16:27.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/02/09/消息中间件之RocketMQ/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
     </nav>
   
 
@@ -940,7 +887,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">Java面试</a>
+                <a href="javascript:void(0)" class="js-tag color1">-DDD -领域模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">Binlog</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -968,15 +923,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">JDK</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1028,11 +979,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
+                <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
+                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
               </li>
             
             <div class="clearfix"></div>
