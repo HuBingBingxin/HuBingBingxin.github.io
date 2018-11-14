@@ -158,6 +158,263 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Redis的底层数据结构以及原理" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/11/06/Redis的底层数据结构以及原理/">Redis的底层数据结构以及原理</a>
+    </h1>
+  
+
+        
+        <a href="/2018/11/06/Redis的底层数据结构以及原理/" class="archive-article-date">
+  	<time datetime="2018-11-05T16:51:49.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-05</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>Redis的数据结构</p>
+</blockquote>
+<ul>
+<li>动态字符串SDS,(Simple Dynamic String), 相比与C的字符串，SDS有自身的优势, 下面是用Java给出的SDS的类型，具体Redis底层是用C语言编写的。</li>
+</ul>
+<p>SDS的数据类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleDynamicString</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> free;     <span class="comment">//维护剩余空间</span></div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> length;   <span class="comment">//维护当前的SDS占用的空间</span></div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">char</span>[] chars; <span class="comment">//当前SDS的数据</span></div><div class="line"></div><div class="line">    <span class="comment">//getXX(); </span></div><div class="line">    <span class="comment">//setXX();</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ol>
+<li>SDS空间预分配 &amp; 惰性空间释放</li>
+</ol>
+<p>SDS的空间与分配很有意思，预分配体现在预先这个词语上，我们都知道C语言扩展空间占用实际上是很费资源的，SDS的空间预分配用伪代码可以表示为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//...需要改动chars[]扩大数据</span></div><div class="line"></div><div class="line"><span class="keyword">if</span> (needSpace &gt; free) &#123;                   <span class="comment">//当前的Free不足以放下要扩展的空间</span></div><div class="line">	<span class="keyword">if</span> (length &lt; <span class="number">1</span>M) &#123;                    <span class="comment">//当前SDS的长度小于1M的时候，申请和length一样大小的size空间</span></div><div class="line">		allocSpaceSize (length);   </div><div class="line">	&#125; <span class="keyword">else</span> &#123;</div><div class="line">		allocSpaceSize (<span class="number">1</span>M);          <span class="comment">//当前的SDS &gt;= 1M 的时候，申请最大1M的空间</span></div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>从伪代码看出并不是每次扩展数据都需要alloc空间的，如果N次扩展，SDS的空间预分配策略是最大申请N次。</p>
+<p>惰性空间释放，意味着当SDS的实际数据缩短时，空间并没有回收，只是把可用的size放在了free里面，这样下次再申请空间的时候，就不用再去acllocSize了。<br>当然这样会造成空间的浪费和内存碎片的产生，SDS提供了API来强制回收这部分的空间。</p>
+<ul>
+<li>链表</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ListNode</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> ListNode pre;    <span class="comment">//前驱节点</span></div><div class="line"></div><div class="line">    <span class="keyword">private</span> ListNode next;  <span class="comment">//后继节点</span></div><div class="line"></div><div class="line">    <span class="keyword">private</span> String value;   <span class="comment">//SDS字符串</span></div><div class="line"></div><div class="line">    <span class="comment">//getXX(); </span></div><div class="line">    <span class="comment">//setXX();</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>列表键就是双向链表来维护的数据，便于插入和删除数据. (lrange的执行效率？以及具体的执行方式)<br>使用的对象和场景: list</p>
+<ul>
+<li>字典</li>
+</ul>
+<p>字典顾名思义就是以及对照表，通过查询字典能找到对应关系，然后找到对应的键值信息。对应的数据结构: hash表，使用链表发来解决冲突。使用的对象和场景: 数据库</p>
+<ol>
+<li>rehash（扩容与收缩）, 渐进式异步rehash<br>当字典的容量不足的时候需要扩容，其实字典的hash维护了两个数组链表，h0和h1，当h1的容量达到阈值时，需要重新维持正常的hash负载因子，这个时候需要扩容重新rehash，类似于hashMap的rehash<br>但是，redis的hash过程是渐进式的，当准备迁移数据到h1的时候，h0和h1都启用，此时的hash表是双读的，但是写只在新的数组链表写，随着数据的迁移，h0的数据不断的迁移到h1,直到h0数据为空。<br>Redis的hash表维护了一个迁移的rehashIndex，因为迁移数据是常态，在高写入的情况下，系统是不迁移数据的。而且迁移数据是一个异步的操作，不影响读写。</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* This is our hash table structure. Every dictionary has two of this as we</span></div><div class="line"> * implement incremental rehashing, for the old to the new table. */</div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">dictht</span> &#123;</span></div><div class="line">    dictEntry **table;       <span class="comment">//数组链表</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> size;      <span class="comment">//字典的size</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> sizemask;  <span class="comment">//hash表的掩码</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> used;      <span class="comment">//hash表目前使用的大小</span></div><div class="line">&#125; dictht;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">dictEntry</span> &#123;</span></div><div class="line">    <span class="keyword">void</span> *key;</div><div class="line">    <span class="keyword">union</span> &#123;</div><div class="line">        <span class="keyword">void</span> *val;</div><div class="line">        <span class="keyword">uint64_t</span> u64;</div><div class="line">        <span class="keyword">int64_t</span> s64;</div><div class="line">        <span class="keyword">double</span> d;</div><div class="line">    &#125; v;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">dictEntry</span> *<span class="title">next</span>;</span></div><div class="line">&#125; dictEntry;</div></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//字典的数据结构</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">dict</span> &#123;</span></div><div class="line">    dictType *type;         </div><div class="line">    <span class="keyword">void</span> *privdata;         </div><div class="line">    dictht ht[<span class="number">2</span>];           <span class="comment">//两个hash表</span></div><div class="line">    <span class="keyword">long</span> rehashidx;         <span class="comment">//迁移的rehashIndex</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> iterators;</div><div class="line">&#125; dict;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">dictType</span> &#123;</span></div><div class="line">	<span class="comment">//hash函数</span></div><div class="line">    <span class="keyword">uint64_t</span> (*hashFunction)(<span class="keyword">const</span> <span class="keyword">void</span> *key);</div><div class="line">    <span class="comment">//key复制</span></div><div class="line">    <span class="keyword">void</span> *(*keyDup)(<span class="keyword">void</span> *privdata, <span class="keyword">const</span> <span class="keyword">void</span> *key);</div><div class="line">    <span class="comment">//值复制</span></div><div class="line">    <span class="keyword">void</span> *(*valDup)(<span class="keyword">void</span> *privdata, <span class="keyword">const</span> <span class="keyword">void</span> *obj);</div><div class="line">    <span class="comment">//key compare</span></div><div class="line">    <span class="keyword">int</span> (*keyCompare)(<span class="keyword">void</span> *privdata, <span class="keyword">const</span> <span class="keyword">void</span> *key1, <span class="keyword">const</span> <span class="keyword">void</span> *key2);</div><div class="line">    <span class="comment">//key销毁</span></div><div class="line">    <span class="keyword">void</span> (*keyDestructor)(<span class="keyword">void</span> *privdata, <span class="keyword">void</span> *key);</div><div class="line">    <span class="comment">//值销毁</span></div><div class="line">    <span class="keyword">void</span> (*valDestructor)(<span class="keyword">void</span> *privdata, <span class="keyword">void</span> *obj);</div><div class="line">&#125; dictType;</div></pre></td></tr></table></figure>
+<ul>
+<li>跳跃表</li>
+</ul>
+<p>使用的对象和场景: zset, 集群的节点的内部结构</p>
+<p>跳跃表的是有序集合的底层实现之一，跳跃表分为，跳跃表信息 + 跳跃节点（N个数据节点）</p>
+<ul>
+<li>整数集合</li>
+</ul>
+<p>使用场景：是集合键的底层实现方式之一，如果ZSet的元素数量不多，那Redis就会使用整数集合来存储这个集合的键<br>数据结构：<br>扩容（有可能改变整个集合的数据类型，从int_8 升级到int_16/int_21/int_64）和缩容</p>
+<ul>
+<li>压缩列表</li>
+</ul>
+<p>使用场景：每个键值对的键或者值要么是比较小的整数，要么是比较短的字符串<br>连锁更新</p>
+<ul>
+<li>对象</li>
+</ul>
+<p>embStr的编码字符串在update后会首先改成raw的编码，所以之后的编码都变成了raw的编码。在初次设置的key中embStr的自己长度大于44字节的时候（redis 3.2.8）会变成raw的编码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="number">127.0</span>.0.1:<span class="number">6379</span>&gt; set hbx3 <span class="string">'1234567890abc4567890123456789012345678901234'</span></div><div class="line">OK</div><div class="line"><span class="number">127.0</span>.0.1:<span class="number">6379</span>&gt; OBJECT encoding hbx3</div><div class="line"><span class="string">"embstr"</span></div><div class="line"><span class="number">127.0</span>.0.1:<span class="number">6379</span>&gt; <span class="function">del <span class="title">hbx3</span></span></div><div class="line"><span class="params">(integer)</span> 1</div><div class="line">127.0.0.1:6379&gt; set hbx3 '1234567890abc45678901234567890123456789012345'</div><div class="line">OK</div><div class="line">127.0.0.1:6379&gt; OBJECT encoding hbx3</div><div class="line">"raw"</div></pre></td></tr></table></figure>
+<p>不同数据结构的编码对象</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">OBJECT ENCODING hbx</div></pre></td></tr></table></figure>
+<blockquote>
+<p>Redis不同对象是用的底层数据结构</p>
+</blockquote>
+<ul>
+<li>int</li>
+<li>字符串（embStr, raw）</li>
+<li>list列表对象（linkedList, zipList, quickList）</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="number">127.0</span>.0.1:<span class="number">6379</span>&gt; rpush hbx <span class="number">1</span> <span class="string">'rr'</span> <span class="number">34</span></div><div class="line">(integer) <span class="number">3</span></div><div class="line"><span class="number">127.0</span>.0.1:<span class="number">6379</span>&gt; type hbx</div><div class="line">list</div></pre></td></tr></table></figure>
+<ul>
+<li><p>hash对象(HSET)（ziplist, hashTable）, 在hash的key数量数量较少的时候，或者某个key的长度较大的时候会引起编码的改变，从ziplist -&gt; hashTable<br>Redis底层的存储是较小的时候index serach的时候是O(N)</p>
+</li>
+<li><p>集合对象(SET),编码方式分为intSet/hashTable,intSet涉及全部值都是int的整型以及数量在512字节一下（有setting可以设置），只要超过这字节数量<br>或者键的值里面有字符串出现，那么底层的intSet编码就会变成hashTable。特别的，如果采用hashTable的编码就会用键的值来作为hashTable的key，值为NULL<br>问题：（如果用hashtable来作为底层的实现，hashTable是有底层的扩容机制的和采用链表法处理hash冲突，那现在Set的值如果很大的时候，每个值都是hash表的一个键，<br>会引起极大的浪费？）</p>
+</li>
+</ul>
+<ul>
+<li>有序集合对象（ZSET）<br>有序集合对象在业务场景中会用到很多，排行榜等相关需求都需要用到ZSET的数据结构，那底层的ZSET是怎么实现的呢？</li>
+</ul>
+<p>底层的数据结构是用两种方式来实现的，</p>
+<ol>
+<li>ziplist, 就是压缩列表，插入的时候用两个相邻的节点来保存数据，前面的节点保存数据的值，后面的节点保存数据的SCORE</li>
+<li>字典 + 跳跃表来实现的，下面这张图很好的说明了ZSET的数据结构, 如果用字典和跳跃表的结构来实现的时候，实际上底层数据是共享的，数据节点指针会共享</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="number">127.0</span>.0.1:<span class="number">6379</span>&gt; <span class="function">zcard <span class="title">hbx</span></span></div><div class="line"><span class="params">(integer)</span> 105</div><div class="line">127.0.0.1:6379&gt; OBJECT ENCODING hbx</div><div class="line">"ziplist"</div><div class="line"></div><div class="line">127.0.0.1:6379&gt; zcard <span class="title">hbx</span></div><div class="line"><span class="params">(integer)</span> 131</div><div class="line">127.0.0.1:6379&gt; type hbx</div><div class="line">zset</div><div class="line">127.0.0.1:6379&gt; OBJECT ENCODING hbx</div><div class="line">"skiplist"</div></pre></td></tr></table></figure>
+<p><img src="/imgs/2018/11/WechatIMG1.jpeg" width="800" hegiht="400" align="center"></p>
+<ul>
+<li>特别的命令</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="number">127.0</span>.0.1:<span class="number">6379</span>&gt; OBJECT IDLETIME hbx <span class="comment">//查看某个key的剩余删除时间</span></div><div class="line">(integer) <span class="number">10397</span></div><div class="line"></div><div class="line"><span class="number">127.0</span>.0.1:<span class="number">6379</span>&gt; OBJECT REFCOUNT hbx <span class="comment">//查看某个key的引用次数</span></div><div class="line">(integer) <span class="number">5</span></div></pre></td></tr></table></figure>
+<blockquote>
+<p>单机数据库</p>
+</blockquote>
+<p>AOF, RDB<br>当服务器运行在复制模式下的时候，主从服务器都能接受select服务，当某个键过期的时候，请求到达从服务器，这个时候从服务器是不知道该键已经过期的。当请求到达主服务器的时候<br>主服务器判断该键已经过期，会删除改建，并且同步消息给从服务器。    </p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">-Redis -数据结构</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/11/06/Redis的底层数据结构以及原理/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="java-的SPI服务" class="article article-type-java  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/10/24/的SPI服务/">的SPI服务</a>
+    </h1>
+  
+
+        
+        <a href="/2018/10/24/的SPI服务/" class="archive-article-date">
+  	<time datetime="2018-10-24T10:31:54.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-10-24</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/10/24/的SPI服务/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-常用的设计模式" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/10/17/常用的设计模式/">常用的设计模式</a>
+    </h1>
+  
+
+        
+        <a href="/2018/10/17/常用的设计模式/" class="archive-article-date">
+  	<time datetime="2018-10-17T14:22:21.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-10-17</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>原型模式</p>
+</blockquote>
+<p>通过实现Cloneable接口，覆写Object的Clone方法, 来实现在多线程情况下的对不同对象的操作，防止对象数据在不同的线程里面被修改（批量发送邮件的example）</p>
+<ul>
+<li>深拷贝</li>
+<li>浅拷贝</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Java</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">设计模式</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/10/17/常用的设计模式/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="post-Binlog解析以及闪回技术" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -595,176 +852,6 @@
 
 
   
-    <article id="post-深入理解Java虚拟机-读书笔记" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/06/25/深入理解Java虚拟机-读书笔记/">深入理解Java虚拟机-读书笔记</a>
-    </h1>
-  
-
-        
-        <a href="/2018/06/25/深入理解Java虚拟机-读书笔记/" class="archive-article-date">
-  	<time datetime="2018-06-25T14:27:46.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-06-25</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>自动内存管理机制</p>
-</blockquote>
-<ul>
-<li>JVM内存区域划分<ul>
-<li>程序计数器，程序计数器是用来存放控制流程分支/循环跳转的指令地址。该区域是唯一不会发生OOM的区域，线程私有</li>
-<li>Java虚拟机栈，改区域存放了很多方法出口以及调用链路，类的局部变量存放区。会发生StackOverFlow和OOM的异常，线程私有</li>
-<li>本地方法栈，该区域一般和Java虚拟机栈的作用类似，区别只是本地方法栈保存的是native方法的引用。会发生StackOverFlow和OOM的异常，线程私有</li>
-<li>堆，该区域是比较大的一块区域，是GC工作的主要阵地，用来存放所有对象实例。分为Eden + S1 + S2, 以及老年代。会发生OOM，线程共享区</li>
-<li>方法区，该区域存放常量，静态变量，类信息，即时编译后的代码等数据。会发生OOM，线程共享区</li>
-<li>运行时常量池，是方法区的一部分</li>
-<li>直接内存</li>
-</ul>
-</li>
-</ul>
-<p><img src="http://p4.music.126.net/82Yaogn-8POggTh2F_LiyQ==/109951163376879091.jpg" width="840" hegiht="320" align="center"></p>
-        
-          <a class="article-more-a" href="/2018/06/25/深入理解Java虚拟机-读书笔记/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">-Java -JVM</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/06/25/深入理解Java虚拟机-读书笔记/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-Keep-Alive" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/05/23/Keep-Alive/">Keep-Alive</a>
-    </h1>
-  
-
-        
-        <a href="/2018/05/23/Keep-Alive/" class="archive-article-date">
-  	<time datetime="2018-05-23T10:45:06.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-05-23</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/05/23/Keep-Alive/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-Spring的事务源码分析" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/05/21/Spring的事务源码分析/">Spring的事务源码分析</a>
-    </h1>
-  
-
-        
-        <a href="/2018/05/21/Spring的事务源码分析/" class="archive-article-date">
-  	<time datetime="2018-05-21T15:39:37.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-05-21</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/05/21/Spring的事务源码分析/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
   
     <nav id="page-nav">
       <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
@@ -861,15 +948,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">-DDD -领域模型</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">Binlog</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">-DDD -领域模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -917,6 +1004,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">-Redis -数据结构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">JAVA</a>
               </li>
              
@@ -945,6 +1036,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">面试</a>
               </li>
              
@@ -953,11 +1048,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
+                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
+                <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
               </li>
             
             <div class="clearfix"></div>

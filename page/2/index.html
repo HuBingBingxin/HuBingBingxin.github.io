@@ -158,6 +158,176 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-深入理解Java虚拟机-读书笔记" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/06/25/深入理解Java虚拟机-读书笔记/">深入理解Java虚拟机-读书笔记</a>
+    </h1>
+  
+
+        
+        <a href="/2018/06/25/深入理解Java虚拟机-读书笔记/" class="archive-article-date">
+  	<time datetime="2018-06-25T14:27:46.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-06-25</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>自动内存管理机制</p>
+</blockquote>
+<ul>
+<li>JVM内存区域划分<ul>
+<li>程序计数器，程序计数器是用来存放控制流程分支/循环跳转的指令地址。该区域是唯一不会发生OOM的区域，线程私有</li>
+<li>Java虚拟机栈，改区域存放了很多方法出口以及调用链路，类的局部变量存放区。会发生StackOverFlow和OOM的异常，线程私有</li>
+<li>本地方法栈，该区域一般和Java虚拟机栈的作用类似，区别只是本地方法栈保存的是native方法的引用。会发生StackOverFlow和OOM的异常，线程私有</li>
+<li>堆，该区域是比较大的一块区域，是GC工作的主要阵地，用来存放所有对象实例。分为Eden + S1 + S2, 以及老年代。会发生OOM，线程共享区</li>
+<li>方法区，该区域存放常量，静态变量，类信息，即时编译后的代码等数据。会发生OOM，线程共享区</li>
+<li>运行时常量池，是方法区的一部分</li>
+<li>直接内存</li>
+</ul>
+</li>
+</ul>
+<p><img src="http://p4.music.126.net/82Yaogn-8POggTh2F_LiyQ==/109951163376879091.jpg" width="840" hegiht="320" align="center"></p>
+        
+          <a class="article-more-a" href="/2018/06/25/深入理解Java虚拟机-读书笔记/#more">more >></a>
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">-Java -JVM</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/06/25/深入理解Java虚拟机-读书笔记/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-Keep-Alive" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/23/Keep-Alive/">Keep-Alive</a>
+    </h1>
+  
+
+        
+        <a href="/2018/05/23/Keep-Alive/" class="archive-article-date">
+  	<time datetime="2018-05-23T10:45:06.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-05-23</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/05/23/Keep-Alive/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-Spring的事务源码分析" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/21/Spring的事务源码分析/">Spring的事务源码分析</a>
+    </h1>
+  
+
+        
+        <a href="/2018/05/21/Spring的事务源码分析/" class="archive-article-date">
+  	<time datetime="2018-05-21T15:39:37.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-05-21</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/05/21/Spring的事务源码分析/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="post-Redis分布式锁研究" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -594,203 +764,6 @@
 
 
   
-    <article id="post-服务端各个领域面试题收集" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/03/01/服务端各个领域面试题收集/">服务端各个领域面试题收集</a>
-    </h1>
-  
-
-        
-        <a href="/2018/03/01/服务端各个领域面试题收集/" class="archive-article-date">
-  	<time datetime="2018-02-28T16:02:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-28</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>收集了Java服务端各种领域面试的资源</p>
-</blockquote>
-<p>与大家共勉</p>
-<blockquote>
-<p>Redis</p>
-</blockquote>
-<ul>
-<li><a href="https://zhuanlan.zhihu.com/p/32540678?utm_source=wechat_session&amp;utm_medium=social&amp;from=timeline" target="_blank" rel="external">坑人无数的Redis面试题</a></li>
-</ul>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">面试</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">Java服务端</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/03/01/服务端各个领域面试题收集/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-rpc的double" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/28/rpc的double/">rpc的double</a>
-    </h1>
-  
-
-        
-        <a href="/2018/02/28/rpc的double/" class="archive-article-date">
-  	<time datetime="2018-02-27T17:10:04.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-27</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/02/28/rpc的double/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-Jvm的深坑" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/28/Jvm的深坑/">Jvm的深坑</a>
-    </h1>
-  
-
-        
-        <a href="/2018/02/28/Jvm的深坑/" class="archive-article-date">
-  	<time datetime="2018-02-27T17:09:22.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-27</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>JVM的内存结构，JVM的内存结构分为堆，方法区，栈</p>
-</blockquote>
-<ul>
-<li>程序计数器，字节码解释器工作时就是通过改变这个计数器的值来选取下一条需要执行的字节码指令，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖这个计数器来完成。不会出现OOM, 线程私有</li>
-<li>堆内存，老年代，年轻代(Eden + From Survivor + To Survivor2), 如果在堆中没有内存完成实例分配，并且堆也无法再扩展时，将会抛出OutOfMemoryError异常。线程共享</li>
-<li>方法区，存储类信息、常量、静态变量等数据，是线程共享的区域，为与Java堆区分，方法区还有一个别名Non-Heap(非堆)。当方法区无法满足内存分配需求时，将抛出OutOfMemoryError异常。线程共享</li>
-<li>栈，分为Java虚拟机栈和本地方法栈主要用于方法的执行<ul>
-<li>JVM虚拟栈, 生命周期和线程一致，每个方法被执行的时候都会同时创建一个栈帧（Stack Frame）用于存储局部变量表、操作栈、动态链接、方法出口等信息。每一个方法被调用直至执行完成的过程，就对应着一个栈帧在虚拟机栈中从入栈到出栈的过程。线程私有</li>
-<li>本地方法栈，本地方法栈（Native Method Stacks）与虚拟机栈所发挥的作用是非常相似的，其区别不过是虚拟机栈为虚拟机执行Java方法（也就是字节码）服务，而本地方法栈则是为虚拟机使用到的Native方法服务。</li>
-</ul>
-</li>
-</ul>
-<p><img src="http://p1.music.126.net/f4gLckm_XMHyY81-qPEMFA==/109951163237752956.jpg" width="800" hegiht="400" align="center"></p>
-        
-          <a class="article-more-a" href="/2018/02/28/Jvm的深坑/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Java</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">Jvm</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/02/28/Jvm的深坑/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
@@ -887,15 +860,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">-DDD -领域模型</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">Binlog</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">-DDD -领域模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -943,6 +916,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">-Redis -数据结构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">JAVA</a>
               </li>
              
@@ -971,6 +948,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">面试</a>
               </li>
              
@@ -979,11 +960,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
+                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">kafka</a>
+                <a href="javascript:void(0)" class="js-tag color1">-Java -JVM</a>
               </li>
             
             <div class="clearfix"></div>
