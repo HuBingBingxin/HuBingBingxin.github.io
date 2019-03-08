@@ -158,6 +158,206 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-分布式锁" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/30/分布式锁/">分布式锁</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/30/分布式锁/" class="archive-article-date">
+  	<time datetime="2018-03-30T12:30:02.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-30</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>分布式锁</p>
+</blockquote>
+<ul>
+<li>zookeeper 监听锁，严格的按照顺序访问的并发锁</li>
+<li>redis setnx</li>
+<li>memcache add</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Java</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">分布式</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/30/分布式锁/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-和ThreadLocal相遇" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/24/和ThreadLocal相遇/">和ThreadLocal相遇</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/24/和ThreadLocal相遇/" class="archive-article-date">
+  	<time datetime="2018-03-24T11:33:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-24</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>ThreadLocal是什么</p>
+</blockquote>
+<ul>
+<li><p>ThreadLocal类似于一个Map，不过是基于Thread层级上的Map, 不同的Thread是不一样的数据</p>
+</li>
+<li><p>放出ThreadLocal的set &amp; get的源码</p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(T value)</span> </span>&#123;</div><div class="line">    Thread t = Thread.currentThread();</div><div class="line">    ThreadLocalMap map = getMap(t);</div><div class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>)</div><div class="line">        map.set(<span class="keyword">this</span>, value);</div><div class="line">    <span class="keyword">else</span></div><div class="line">        createMap(t, value);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> T <span class="title">get</span><span class="params">()</span> </span>&#123;</div><div class="line">    Thread t = Thread.currentThread();</div><div class="line">    ThreadLocalMap map = getMap(t);</div><div class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>) &#123;</div><div class="line">        ThreadLocalMap.Entry e = map.getEntry(<span class="keyword">this</span>);</div><div class="line">        <span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</div><div class="line">            T result = (T)e.value;</div><div class="line">            <span class="keyword">return</span> result;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> setInitialValue();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+        
+          <a class="article-more-a" href="/2018/03/24/和ThreadLocal相遇/#more">more >></a>
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Java</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">ThreadLocal</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/24/和ThreadLocal相遇/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-一致性hash算法原理" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/01/一致性hash算法原理/">一致性hash算法原理</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/01/一致性hash算法原理/" class="archive-article-date">
+  	<time datetime="2018-03-01T11:27:02.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-01</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>hash算法</p>
+</blockquote>
+<p><a href="https://www.cnblogs.com/lpfuture/p/5796398.html" target="_blank" rel="external">hash算法</a></p>
+<ul>
+<li>一致性hash算法-圆环顺时针归属节点理论</li>
+<li>虚拟节点的映射, 即使很少的服务节点也能做到相对均匀的数据分布</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/01/一致性hash算法原理/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="post-服务端各个领域面试题收集" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -593,147 +793,6 @@
 
 
   
-    <article id="post-hystrix到底是什么？" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/08/hystrix到底是什么？/">hystrix到底是什么？</a>
-    </h1>
-  
-
-        
-        <a href="/2018/02/08/hystrix到底是什么？/" class="archive-article-date">
-  	<time datetime="2018-02-08T10:00:52.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-08</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/02/08/hystrix到底是什么？/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-TCC-Transaction事务" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/08/TCC-Transaction事务/">TCC-Transaction事物</a>
-    </h1>
-  
-
-        
-        <a href="/2018/02/08/TCC-Transaction事务/" class="archive-article-date">
-  	<time datetime="2018-02-08T09:53:53.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-08</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/02/08/TCC-Transaction事务/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-gradle的回顾" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/07/gradle的回顾/">gradle的回顾</a>
-    </h1>
-  
-
-        
-        <a href="/2018/02/07/gradle的回顾/" class="archive-article-date">
-  	<time datetime="2018-02-07T11:19:55.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-02-07</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/02/07/gradle的回顾/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
@@ -748,7 +807,7 @@
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2018 bingbing
+    		&copy; 2019 bingbing
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
@@ -858,7 +917,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -866,11 +925,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
+                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
+                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -898,6 +957,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">Spring源码</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">memcache</a>
               </li>
              
@@ -906,19 +969,27 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">分布式</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
+                <a href="javascript:void(0)" class="js-tag color1">Netty</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">TOC/IP</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">

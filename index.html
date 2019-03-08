@@ -158,6 +158,241 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Redis的应用与挑战" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/02/28/Redis的应用与挑战/">Redis的应用与挑战</a>
+    </h1>
+  
+
+        
+        <a href="/2019/02/28/Redis的应用与挑战/" class="archive-article-date">
+  	<time datetime="2019-02-28T09:37:12.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-02-28</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>写在前面</p>
+</blockquote>
+<p>Redis的应用场景的广阔，是其他关系型数据库代替不了的。在知道了怎么用的前提下，我们更希望专注于内部的实现，以及内部的空间结构，在遇到问题的时候可以指导我们大致的思路方向。 这期就从应用的层面来熟悉下经常接触的这个K-V数据库。<br>笔者会从下面几个方面来介绍下相关的原理以及曾经踩过的坑:</p>
+<ul>
+<li>Redis的client与server的交互过程以及底层的执行顺序</li>
+<li>Redis key的删除</li>
+<li>Redis的锁</li>
+<li>Event事件模型</li>
+<li>lua脚本</li>
+</ul>
+<blockquote>
+<p>在实际的操作中Redis是怎么做的</p>
+</blockquote>
+<ol>
+<li>我们首先来看下常用的getKey和setKey以及相关类似的命令，看下图</li>
+</ol>
+<p><img src="/imgs/2019/02/28/WechatIMG1.jpeg" width="1240" hegiht="400" align="center"></p>
+<p>为什么要从getKey setKey深入呢？这是因为这里面覆盖到的逻辑和可延伸的东西比较多，笔者想站在这个视角试图揭开Redis server到底是和client的交互是一个怎样的过程。<br>经常用redis的同学可能用起来很爽很开心，性能也不必担心，上图是个大致的流程get/set key需要处理以及会触发的逻辑，实际上server底层是非常复杂的，如果没有对底层有个仔细的探究，当出现问题的时候，我们是无从下手来排查的，时间就是KPI。那我们开始吧～</p>
+<p>首先我们捋一遍流程，redis底层是c写的，这个代码对于Javaer实际上看起来并不是那么舒心，因为有太多的逻辑上的跳转，主题逻辑也是面向过程的，笔者在梳理的过程中也时常<br>遇到看到下面就忘记了上面的具体的处理逻辑，那我们先整体看下redis的server在初始化到ready的过程中的处理逻辑：</p>
+<p><img src="/imgs/2019/03/08/redis-server-init.jpeg" width="1400" hegiht="640" align="center"></p>
+<p>大体上的流程处理分为这几个步骤</p>
+<ol>
+<li>initServerConfig</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">initServerConfig</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> j;</div><div class="line"></div><div class="line">    pthread_mutex_init(&amp;server.next_client_id_mutex,<span class="literal">NULL</span>); <span class="comment">// 互斥锁初始化</span></div><div class="line">    pthread_mutex_init(&amp;server.lruclock_mutex,<span class="literal">NULL</span>); <span class="comment">// 互斥锁初始化</span></div><div class="line">    pthread_mutex_init(&amp;server.unixtime_mutex,<span class="literal">NULL</span>); <span class="comment">// 互斥锁初始化</span></div><div class="line">    <span class="comment">//...</span></div><div class="line"></div><div class="line">    <span class="comment">/* Replication related */</span></div><div class="line"></div><div class="line">    <span class="comment">// 设置客户端的输出缓冲区限制</span></div><div class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; REDIS_CLIENT_LIMIT_NUM_CLASSES; j++) &#123;</div><div class="line">        server.client_obuf_limits[j] = clientBufferLimitsDefaults[j];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ol>
+<li>moduleInitModulesSystem</li>
+<li>loading config file</li>
+<li>init server</li>
+<li>AOF/RDB load</li>
+<li>Enable Cluster</li>
+<li>aeSetBeforeSleepProc</li>
+<li>aeMain</li>
+<li>aeDeleteEventLoop</li>
+</ol>
+<p>先看把server拉起来的部分，Redis的server struct的定义上有很多属性，大致可以分为几个大的部分: </p>
+<p><img src="/imgs/2019/03/07/WechatIMG1.jpeg" width="760" hegiht="400" align="center"></p>
+<ul>
+<li>General</li>
+<li>Stats</li>
+<li>Statistics</li>
+<li>Networking</li>
+<li>Configuration / config file</li>
+<li>Sort limit condition</li>
+<li>Cluster</li>
+<li>RDB / AOF</li>
+<li>Replication master/slave</li>
+<li>Logging</li>
+<li>Zip structure</li>
+<li>Event loop</li>
+<li>Pub / Sub</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">redisServer</span> &#123;</span></div><div class="line">    <span class="comment">/* General */</span></div><div class="line">    <span class="keyword">pid_t</span> pid;                  <span class="comment">/* Main process pid. */</span></div><div class="line">    <span class="keyword">char</span> *configfile;           <span class="comment">/* Absolute config file path, or NULL */</span></div><div class="line">    <span class="keyword">char</span> *executable;           <span class="comment">/* Absolute executable file path. */</span></div><div class="line">    <span class="keyword">char</span> **exec_argv;           <span class="comment">/* Executable argv vector (copy). */</span></div><div class="line">    <span class="keyword">int</span> dynamic_hz;             <span class="comment">/* Change hz value depending on # of clients. */</span></div><div class="line">    <span class="keyword">int</span> config_hz;              <span class="comment">/* Configured HZ value. May be different than</span></div><div class="line">                                   the actual 'hz' field value if dynamic-hz</div><div class="line">                                   is enabled. */</div><div class="line">    <span class="keyword">int</span> hz;                     <span class="comment">/* serverCron() calls frequency in hertz */</span></div><div class="line"></div><div class="line">    <span class="comment">//etc...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Redis的command table的结构，在经过初始化server的相关配置后，server会load command table, 在每次client带着参数来查询的时候，command实际上相当于是个map表，给出跳转处理的函数，进而执行下一步。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="keyword">void</span> <span class="title">redisCommandProc</span><span class="params">(client *c)</span></span>;</div><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="keyword">int</span> *<span class="title">redisGetKeysProc</span><span class="params">(struct redisCommand *cmd, robj **argv, <span class="keyword">int</span> argc, <span class="keyword">int</span> *numkeys)</span></span>;</div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">redisCommand</span> &#123;</span></div><div class="line">    <span class="keyword">char</span> *name;</div><div class="line">    redisCommandProc *proc; <span class="comment">// 操作函数</span></div><div class="line">    <span class="keyword">int</span> arity; <span class="comment">//参数个数</span></div><div class="line">    <span class="keyword">char</span> *sflags; <span class="comment">/* Flags as string representation, one char per flag. */</span></div><div class="line">    <span class="keyword">int</span> flags;    <span class="comment">/* The actual flags, obtained from the 'sflags' field. */</span></div><div class="line">    <span class="comment">/* Use a function to determine keys arguments in a command line.</span></div><div class="line">     * Used for Redis Cluster redirect. */</div><div class="line">    redisGetKeysProc *getkeys_proc; <span class="comment">// cluster模式的时候使用</span></div><div class="line">    <span class="comment">/* What keys should be loaded in background when calling this command? */</span></div><div class="line">    <span class="keyword">int</span> firstkey; <span class="comment">/* The first argument that's a key (0 = no keys) */</span></div><div class="line">    <span class="keyword">int</span> lastkey;  <span class="comment">/* The last argument that's a key */</span></div><div class="line">    <span class="keyword">int</span> keystep;  <span class="comment">/* The step between first and last key */</span></div><div class="line">    <span class="keyword">long</span> <span class="keyword">long</span> microseconds, calls;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>server load的command配置，命令节选<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">redisCommand</span> <span class="title">redisCommandTable</span>[] = &#123;</span></div><div class="line">    &#123;<span class="string">"module"</span>,moduleCommand,<span class="number">-2</span>,<span class="string">"as"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"get"</span>,getCommand,<span class="number">2</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"set"</span>,setCommand,<span class="number">-3</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"setnx"</span>,setnxCommand,<span class="number">3</span>,<span class="string">"wmF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"setex"</span>,setexCommand,<span class="number">4</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"append"</span>,appendCommand,<span class="number">3</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"strlen"</span>,strlenCommand,<span class="number">2</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"del"</span>,delCommand,<span class="number">-2</span>,<span class="string">"w"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">-1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"unlink"</span>,unlinkCommand,<span class="number">-2</span>,<span class="string">"wF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">-1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"exists"</span>,existsCommand,<span class="number">-2</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">-1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"setbit"</span>,setbitCommand,<span class="number">4</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;, <span class="comment">// 512M的size现在</span></div><div class="line">    &#123;<span class="string">"getbit"</span>,getbitCommand,<span class="number">3</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"substr"</span>,getrangeCommand,<span class="number">4</span>,<span class="string">"r"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    <span class="comment">// etc, 实际上redis的支持的命令是非常多的，包括客户端发来的api命令以及查看系统状态等的命令</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>slowlog</p>
+<p>server启动完毕后，等待接受命令，首先我们从client发起一个指令开始：</p>
+<blockquote>
+<p>Redis的key删除</p>
+<p>Redis的Event模型</p>
+<p>lua脚本的应用</p>
+</blockquote>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">-Redis -数据结构</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2019/02/28/Redis的应用与挑战/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-ShardingSphere源码分析" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/02/14/ShardingSphere源码分析/">ShardingSphere源码分析</a>
+    </h1>
+  
+
+        
+        <a href="/2019/02/14/ShardingSphere源码分析/" class="archive-article-date">
+  	<time datetime="2019-02-14T09:55:35.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-02-14</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2019/02/14/ShardingSphere源码分析/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-Spring源码深入" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/11/23/Spring源码深入/">Spring源码深入</a>
+    </h1>
+  
+
+        
+        <a href="/2018/11/23/Spring源码深入/" class="archive-article-date">
+  	<time datetime="2018-11-23T11:13:25.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-23</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>bean解析</p>
+</blockquote>
+<p>bean解析</p>
+<blockquote>
+<p>bean加载</p>
+</blockquote>
+<p>bean加载</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">Spring源码</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/11/23/Spring源码深入/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="post-Redis的底层数据结构以及原理" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -179,6 +414,10 @@
     <div class="article-entry" itemprop="articleBody">
       
         <blockquote>
+<p>写在前面</p>
+</blockquote>
+<p>Redis是个key-value的数据库，有很好的读写性能，有丰富的数据结构，在业务场景上也有很多优势。</p>
+<blockquote>
 <p>Redis的数据结构</p>
 </blockquote>
 <ul>
@@ -212,6 +451,7 @@
 </ul>
 <p>使用的对象和场景: zset, 集群的节点的内部结构</p>
 <p>跳跃表的是有序集合的底层实现之一，跳跃表分为，跳跃表信息 + 跳跃节点（N个数据节点）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> &#123;</span></div><div class="line">    sds ele;                             <span class="comment">//SDS</span></div><div class="line">    <span class="keyword">double</span> score;                        <span class="comment">//该节点的score</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> *<span class="title">backward</span>;</span>      <span class="comment">//前进指针</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistLevel</span> &#123;</span>              </div><div class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> *<span class="title">forward</span>;</span>   </div><div class="line">        <span class="keyword">unsigned</span> <span class="keyword">long</span> span;              <span class="comment">//跨度</span></div><div class="line">    &#125; level[];</div><div class="line">&#125; zskiplistNode;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">zskiplist</span> &#123;</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> *<span class="title">header</span>, *<span class="title">tail</span>;</span>  <span class="comment">//头节点 &amp; 尾节点</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> length;                 <span class="comment">//跳跃表的节点size</span></div><div class="line">    <span class="keyword">int</span> level;                            <span class="comment">//跳跃表中的最大的level高度</span></div><div class="line">&#125; zskiplist;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">zset</span> &#123;</span></div><div class="line">    dict *dict;</div><div class="line">    zskiplist *zsl;</div><div class="line">&#125; zset;</div></pre></td></tr></table></figure>
 <ul>
 <li>整数集合</li>
 </ul>
@@ -260,6 +500,35 @@
 <p>单机数据库</p>
 </blockquote>
 <p>AOF, RDB<br>当服务器运行在复制模式下的时候，主从服务器都能接受select服务，当某个键过期的时候，请求到达从服务器，这个时候从服务器是不知道该键已经过期的。当请求到达主服务器的时候<br>主服务器判断该键已经过期，会删除改建，并且同步消息给从服务器。    </p>
+<blockquote>
+<p>RDB AOF的持久化方式</p>
+</blockquote>
+<p>RDB的备份数据方式是全面性的，SAVE的命令会导致主线程阻塞，BGSAVE的命令是在异步子进程中执行的，不会阻塞主进程。一般是server主进程定期执行BGSAVE命令。<br>AOF的同步方式会比RDB的方式好一些，是以命令追加的方式写入文件，并且会合并命令。由于CPU和磁盘响应的巨大差异有一些参数(appendfsync)可以控制AOF的同步方式，<br>appendfsync的取值有三种, 三种方式下各有缺点，不同的参数对Redis的性能有很大影响。<br>其中AOF的文件追加里面的命令重写比较有意思，client -&gt; server -&gt; append AOF &amp; override AOF(child process). 当override AOF完成的时候会通知parent process</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">configEnum aof_fsync_enum[] = &#123; </div><div class="line">    &#123;<span class="string">"everysec"</span>, AOF_FSYNC_EVERYSEC&#125;, <span class="comment">//间隔1s刷一次盘</span></div><div class="line">    &#123;<span class="string">"always"</span>, AOF_FSYNC_ALWAYS&#125;,     <span class="comment">//每次都会刷磁盘，消耗最高</span></div><div class="line">    &#123;<span class="string">"no"</span>, AOF_FSYNC_NO&#125;,             <span class="comment">//AOF 关闭，默认使用系统刷盘的方式</span></div><div class="line">    &#123;<span class="literal">NULL</span>, <span class="number">0</span>&#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>集群数据库</p>
+</blockquote>
+<ol>
+<li>主从服务器复制（缓冲区，可以调节大小），全量复制，部分复制，服务器运行id</li>
+<li>从服务器是主服务器的客户端（a.设置主服务器的地址和端口 b.建立套接字窗口 c.发送ping d.身份校验 e.发送端口信息 f.同步数据 g.命令传播）</li>
+<li>心跳 （Redis2.8版本以上才加入了主从同步的复制缓冲区，以及REPLCONF ACK）</li>
+</ol>
+<blockquote>
+<p>Sentinel</p>
+</blockquote>
+<ol>
+<li>Raft算法</li>
+</ol>
+<blockquote>
+<p>Cluster模式</p>
+</blockquote>
+<ol>
+<li>Cluster</li>
+</ol>
+<blockquote>
+<p>思考 </p>
+</blockquote>
+<p>随着业务开发的深入，越来越觉得结合业务场景来使用合理的方案以及整体设计的考量是很重要的，业务变化频繁，初期的方案随着业务的变化而变的不在那么适合新的场景。<br>这个时候组要我们大胆使用新的设计来重新cover整体，但是我们重构的时候要清楚的知道每个中间件的优缺点以及适合的场景。</p>
 
       
 
@@ -298,19 +567,19 @@
 
 
   
-    <article id="java-的SPI服务" class="article article-type-java  article-index" itemscope itemprop="blogPost">
+    <article id="java-SPI服务" class="article article-type-java  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/10/24/的SPI服务/">的SPI服务</a>
+      <a class="article-title" href="/2018/10/24/SPI服务/">的SPI服务</a>
     </h1>
   
 
         
-        <a href="/2018/10/24/的SPI服务/" class="archive-article-date">
+        <a href="/2018/10/24/SPI服务/" class="archive-article-date">
   	<time datetime="2018-10-24T10:31:54.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-10-24</time>
 </a>
         
@@ -330,7 +599,7 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/10/24/的SPI服务/">展开全文 >></a>
+          <a class="article-more-a" href="/2018/10/24/SPI服务/">展开全文 >></a>
         </p>
       
 
@@ -649,209 +918,6 @@
 
 
   
-    <article id="post-JVM优化之逃逸分析" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/08/02/JVM优化之逃逸分析/">JVM优化之逃逸分析</a>
-    </h1>
-  
-
-        
-        <a href="/2018/08/02/JVM优化之逃逸分析/" class="archive-article-date">
-  	<time datetime="2018-08-01T16:35:01.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-08-01</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>之前的小伙伴介绍过逃逸分析，现在自己想深入研究一下逃逸分析具体是什么，JVM帮我们做了什么，为什么要做，以及怎么做的？</p>
-<p>什么是逃逸分析？</p>
-<blockquote>
-<p>逃逸分析首先要划分范围，就是说在我们的日常代码里存在着不同级别的逃逸。逃逸分析实际上是JVM的一种为优化提供支持的分析手段，我们都知道javac只是原封不动的翻译了我们的代码(静态编译)，具体的优化还是要靠JVM的动态编译(JIT,分为C1，C2，C1 + C2，这个可以另一篇文章介绍)。</p>
-</blockquote>
-<p>还是给个图来表示静态编译到动态编译吧:<br><img src="/imgs/compiler.png" width="800" hegiht="400" align="center"></p>
-        
-          <a class="article-more-a" href="/2018/08/02/JVM优化之逃逸分析/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">Java</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">JVM</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">逃逸分析</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/08/02/JVM优化之逃逸分析/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="java10?-Javaer要跟上时代" class="article article-type-java10?  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/07/05/Javaer要跟上时代/">Javaer要跟上时代</a>
-    </h1>
-  
-
-        
-        <a href="/2018/07/05/Javaer要跟上时代/" class="archive-article-date">
-  	<time datetime="2018-07-04T17:26:21.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-07-04</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>Java的历代版本与新增特性</p>
-</blockquote>
-<ul>
-<li>Java5, Java6, Java7, Java8, Java9, Java10的特性</li>
-</ul>
-<blockquote>
-<p>Java8的特性</p>
-</blockquote>
-<ul>
-<li>函数式编程<ul>
-<li>函数柯里化, 引用JS</li>
-</ul>
-</li>
-<li>Lambda<ul>
-<li>举例</li>
-<li>局部变量final引用</li>
-<li>类型推断，菱形操作符，根据函数参数传递</li>
-</ul>
-</li>
-<li>函数接口</li>
-</ul>
-        
-          <a class="article-more-a" href="/2018/07/05/Javaer要跟上时代/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">-Java8 -Java10</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/07/05/Javaer要跟上时代/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-Redis-Cluster的一次连接数的问题" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/07/02/Redis-Cluster的一次连接数的问题/">Redis-Cluster的一次连接数的问题</a>
-    </h1>
-  
-
-        
-        <a href="/2018/07/02/Redis-Cluster的一次连接数的问题/" class="archive-article-date">
-  	<time datetime="2018-07-02T14:09:31.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-07-02</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/07/02/Redis-Cluster的一次连接数的问题/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
   
     <nav id="page-nav">
       <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
@@ -866,7 +932,7 @@
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2018 bingbing
+    		&copy; 2019 bingbing
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
@@ -976,7 +1042,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -984,11 +1050,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
+                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
+                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1016,6 +1082,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">Spring源码</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">memcache</a>
               </li>
              
@@ -1024,19 +1094,27 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">分布式</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
+                <a href="javascript:void(0)" class="js-tag color1">Netty</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">TOC/IP</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">

@@ -8,18 +8,18 @@
   <link rel="dns-prefetch" href="http://bingbingxin.com">
   <title>Redis的底层数据结构以及原理 | bingbingxin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Redis的数据结构   动态字符串SDS,(Simple Dynamic String), 相比与C的字符串，SDS有自身的优势, 下面是用Java给出的SDS的类型，具体Redis底层是用C语言编写的。  SDS的数据类 1234567891011public class SimpleDynamicString &amp;#123;    private int free;     //维护剩余空间">
+  <meta name="description" content="写在前面  Redis是个key-value的数据库，有很好的读写性能，有丰富的数据结构，在业务场景上也有很多优势。  Redis的数据结构   动态字符串SDS,(Simple Dynamic String), 相比与C的字符串，SDS有自身的优势, 下面是用Java给出的SDS的类型，具体Redis底层是用C语言编写的。  SDS的数据类 1234567891011public class">
 <meta name="keywords" content="-Redis -数据结构">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis的底层数据结构以及原理">
 <meta property="og:url" content="http://bingbingxin.com/2018/11/06/Redis的底层数据结构以及原理/index.html">
 <meta property="og:site_name" content="bingbingxin">
-<meta property="og:description" content="Redis的数据结构   动态字符串SDS,(Simple Dynamic String), 相比与C的字符串，SDS有自身的优势, 下面是用Java给出的SDS的类型，具体Redis底层是用C语言编写的。  SDS的数据类 1234567891011public class SimpleDynamicString &amp;#123;    private int free;     //维护剩余空间">
+<meta property="og:description" content="写在前面  Redis是个key-value的数据库，有很好的读写性能，有丰富的数据结构，在业务场景上也有很多优势。  Redis的数据结构   动态字符串SDS,(Simple Dynamic String), 相比与C的字符串，SDS有自身的优势, 下面是用Java给出的SDS的类型，具体Redis底层是用C语言编写的。  SDS的数据类 1234567891011public class">
 <meta property="og:image" content="http://bingbingxin.com/imgs/2018/11/WechatIMG1.jpeg">
-<meta property="og:updated_time" content="2018-11-14T03:37:22.940Z">
+<meta property="og:updated_time" content="2019-02-14T02:07:26.210Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis的底层数据结构以及原理">
-<meta name="twitter:description" content="Redis的数据结构   动态字符串SDS,(Simple Dynamic String), 相比与C的字符串，SDS有自身的优势, 下面是用Java给出的SDS的类型，具体Redis底层是用C语言编写的。  SDS的数据类 1234567891011public class SimpleDynamicString &amp;#123;    private int free;     //维护剩余空间">
+<meta name="twitter:description" content="写在前面  Redis是个key-value的数据库，有很好的读写性能，有丰富的数据结构，在业务场景上也有很多优势。  Redis的数据结构   动态字符串SDS,(Simple Dynamic String), 相比与C的字符串，SDS有自身的优势, 下面是用Java给出的SDS的类型，具体Redis底层是用C语言编写的。  SDS的数据类 1234567891011public class">
 <meta name="twitter:image" content="http://bingbingxin.com/imgs/2018/11/WechatIMG1.jpeg">
   
     <link rel="alternative" href="/atom.xml" title="bingbingxin" type="application/atom+xml">
@@ -181,6 +181,10 @@
     <div class="article-entry" itemprop="articleBody">
       
         <blockquote>
+<p>写在前面</p>
+</blockquote>
+<p>Redis是个key-value的数据库，有很好的读写性能，有丰富的数据结构，在业务场景上也有很多优势。</p>
+<blockquote>
 <p>Redis的数据结构</p>
 </blockquote>
 <ul>
@@ -214,6 +218,7 @@
 </ul>
 <p>使用的对象和场景: zset, 集群的节点的内部结构</p>
 <p>跳跃表的是有序集合的底层实现之一，跳跃表分为，跳跃表信息 + 跳跃节点（N个数据节点）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> &#123;</span></div><div class="line">    sds ele;                             <span class="comment">//SDS</span></div><div class="line">    <span class="keyword">double</span> score;                        <span class="comment">//该节点的score</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> *<span class="title">backward</span>;</span>      <span class="comment">//前进指针</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistLevel</span> &#123;</span>              </div><div class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> *<span class="title">forward</span>;</span>   </div><div class="line">        <span class="keyword">unsigned</span> <span class="keyword">long</span> span;              <span class="comment">//跨度</span></div><div class="line">    &#125; level[];</div><div class="line">&#125; zskiplistNode;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">zskiplist</span> &#123;</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">zskiplistNode</span> *<span class="title">header</span>, *<span class="title">tail</span>;</span>  <span class="comment">//头节点 &amp; 尾节点</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> length;                 <span class="comment">//跳跃表的节点size</span></div><div class="line">    <span class="keyword">int</span> level;                            <span class="comment">//跳跃表中的最大的level高度</span></div><div class="line">&#125; zskiplist;</div><div class="line"></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">zset</span> &#123;</span></div><div class="line">    dict *dict;</div><div class="line">    zskiplist *zsl;</div><div class="line">&#125; zset;</div></pre></td></tr></table></figure>
 <ul>
 <li>整数集合</li>
 </ul>
@@ -262,6 +267,35 @@
 <p>单机数据库</p>
 </blockquote>
 <p>AOF, RDB<br>当服务器运行在复制模式下的时候，主从服务器都能接受select服务，当某个键过期的时候，请求到达从服务器，这个时候从服务器是不知道该键已经过期的。当请求到达主服务器的时候<br>主服务器判断该键已经过期，会删除改建，并且同步消息给从服务器。    </p>
+<blockquote>
+<p>RDB AOF的持久化方式</p>
+</blockquote>
+<p>RDB的备份数据方式是全面性的，SAVE的命令会导致主线程阻塞，BGSAVE的命令是在异步子进程中执行的，不会阻塞主进程。一般是server主进程定期执行BGSAVE命令。<br>AOF的同步方式会比RDB的方式好一些，是以命令追加的方式写入文件，并且会合并命令。由于CPU和磁盘响应的巨大差异有一些参数(appendfsync)可以控制AOF的同步方式，<br>appendfsync的取值有三种, 三种方式下各有缺点，不同的参数对Redis的性能有很大影响。<br>其中AOF的文件追加里面的命令重写比较有意思，client -&gt; server -&gt; append AOF &amp; override AOF(child process). 当override AOF完成的时候会通知parent process</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">configEnum aof_fsync_enum[] = &#123; </div><div class="line">    &#123;<span class="string">"everysec"</span>, AOF_FSYNC_EVERYSEC&#125;, <span class="comment">//间隔1s刷一次盘</span></div><div class="line">    &#123;<span class="string">"always"</span>, AOF_FSYNC_ALWAYS&#125;,     <span class="comment">//每次都会刷磁盘，消耗最高</span></div><div class="line">    &#123;<span class="string">"no"</span>, AOF_FSYNC_NO&#125;,             <span class="comment">//AOF 关闭，默认使用系统刷盘的方式</span></div><div class="line">    &#123;<span class="literal">NULL</span>, <span class="number">0</span>&#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>集群数据库</p>
+</blockquote>
+<ol>
+<li>主从服务器复制（缓冲区，可以调节大小），全量复制，部分复制，服务器运行id</li>
+<li>从服务器是主服务器的客户端（a.设置主服务器的地址和端口 b.建立套接字窗口 c.发送ping d.身份校验 e.发送端口信息 f.同步数据 g.命令传播）</li>
+<li>心跳 （Redis2.8版本以上才加入了主从同步的复制缓冲区，以及REPLCONF ACK）</li>
+</ol>
+<blockquote>
+<p>Sentinel</p>
+</blockquote>
+<ol>
+<li>Raft算法</li>
+</ol>
+<blockquote>
+<p>Cluster模式</p>
+</blockquote>
+<ol>
+<li>Cluster</li>
+</ol>
+<blockquote>
+<p>思考 </p>
+</blockquote>
+<p>随着业务开发的深入，越来越觉得结合业务场景来使用合理的方案以及整体设计的考量是很重要的，业务变化频繁，初期的方案随着业务的变化而变的不在那么适合新的场景。<br>这个时候组要我们大胆使用新的设计来重新cover整体，但是我们重构的时候要清楚的知道每个中间件的优缺点以及适合的场景。</p>
 
       
 
@@ -366,8 +400,17 @@
   
 <nav id="article-nav">
   
+    <a href="/2018/11/23/Spring源码深入/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          Spring源码深入
+        
+      </div>
+    </a>
   
-    <a href="/2018/10/24/的SPI服务/" id="article-nav-older" class="article-nav-link-wrap">
+  
+    <a href="/2018/10/24/SPI服务/" id="article-nav-older" class="article-nav-link-wrap">
       <div class="article-nav-title">的SPI服务</div>
       <i class="icon-circle-right"></i>
     </a>
@@ -394,7 +437,7 @@
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2018 bingbing
+    		&copy; 2019 bingbing
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
@@ -504,7 +547,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -512,11 +555,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
+                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
+                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -544,6 +587,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">Spring源码</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">memcache</a>
               </li>
              
@@ -552,19 +599,27 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">分布式</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
+                <a href="javascript:void(0)" class="js-tag color1">Netty</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">TOC/IP</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
