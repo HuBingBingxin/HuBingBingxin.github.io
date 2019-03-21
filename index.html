@@ -158,6 +158,324 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-布鲁私FC" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/03/14/布鲁私FC/">布鲁私FC</a>
+    </h1>
+  
+
+        
+        <a href="/2019/03/14/布鲁私FC/" class="archive-article-date">
+  	<time datetime="2019-03-13T16:03:14.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-03-13</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><br></p>
+<h3> 1. DB </h3> 
+
+<blockquote>
+<p>分库分表</p>
+</blockquote>
+<p>分为水平分表和垂直分表，分区和负载均衡以及数据迁移，二级映射<br>分布式数据库组件sharding-sphere<br>DDB的问题，1.分布式事务 2.数据迁移 3.join连接查询<br>亮点: QSServer代理，加解码器，重客户端DBI</p>
+<blockquote>
+<p>分布式事务</p>
+</blockquote>
+<p>CAP的概念，BASE理论，满足2/3，可用性，一致性，分区容错性。在分布式的环境中分区容错性是必须的，可用性和一致性则会牺牲两个其中的一个，而在分布式的环境中可用性也是众多业务场景中需要支持的，那基于BASE理论，其实可选择的就是牺牲一致性，来保障最终一致性。<br><a href="https://www.cnblogs.com/savorboard/p/distributed-system-transaction-consistency.html" target="_blank" rel="external">分布式事务</a><br>XA的二阶段提交事务，基本要保证是要在同一个库上，均衡策略相同。preCommint -&gt; commit<br>3PC, canCommint -&gt; preCommit -&gt; commit<br>TCC，消息事务的补偿机制，最终一致性. try -&gt; confirm -&gt; cancel, 要提供cancel的机制<br>事务的协调器，分布式系统先申请全局唯一事务号，各个分布式系统参与<br>MQ事务消息</p>
+<blockquote>
+<p>索引</p>
+</blockquote>
+<p>innodb索引引擎的结构，b+树(b树，平衡树)</p>
+<ul>
+<li>二叉树（满二叉树，完全二叉树）</li>
+<li>二叉查找树<a href="https://www.cnblogs.com/fingerboy/p/5493786.html" target="_blank" rel="external">参考</a></li>
+<li>平衡二叉树，在二叉查找树删除节点的时候，树会像左边倾斜，带来失去平衡的问题增大查找时间复杂度。左左，左右，右左，右右，旋转带来平衡<ul>
+<li>平衡二叉树-AVL树(自平衡二叉查找树)</li>
+<li>平衡二叉树-红黑树,红黑树的左旋和右旋，左旋是把右孩子设为父节点，右旋是把左孩子设为父节点。红黑树的定义和要素</li>
+</ul>
+</li>
+<li>B树，多路搜索树，每个结点的孩子数量在[2, M]之间，结点上就存有了数据，访问速度上会更快</li>
+<li>B+树，除了满足B树的特性之外，非叶子结点只存有导航信息，叶子结点存有真实的数据，并且叶子结点的数据是首尾相连的 <a href="https://www.cnblogs.com/vincently/p/4526560.html" target="_blank" rel="external">B树和B+树</a></li>
+<li>B<em>树，</em>B+树的改进，非叶子的子节点上也会指向临近的非叶子结点，把结点的最低利用率1/2提高到了2/3<br><a href="http://blog.codinglabs.org/articles/theory-of-mysql-index.html" target="_blank" rel="external">数据库索引参考</a></li>
+</ul>
+<blockquote>
+<p>存储引擎，数据库事务</p>
+</blockquote>
+<p>ACID特性，原子性，隔离性，一致性，持久性<br>隔离级别，读未提交，读已提交，可重复读，串行化</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">SELECT @@GLOBAL.TX_ISOLATION,@@TX_ISOLATION; #查看全局事务级别</div><div class="line">SET [SESSION | GLOBAL] TRANSACTION ISOLATION LEVEL &#123;READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ | SERIALIZABLE&#125;</div><div class="line"></div><div class="line">set global transaction isolation level read committed; //全局的</div><div class="line">set session transaction isolation level read committed; //当前会话</div></pre></td></tr></table></figure>
+<p>MVCC <a href="https://www.cnblogs.com/chenpingzhao/p/5065316.html" target="_blank" rel="external">MVCC的多版本控制介绍</a><br>总的来说，MVCC对于MySQL支持高并发的事务起了很大帮助，不是单纯的借助行级锁来实现事务。每行记录会有一些隐藏的属性，一般有事务号，undo指针等信息。MVCC并不是完整意义上的多版本控制，而是类似于乐观锁的机制，在比对之前的数据上，如果能覆盖操作就执行覆盖事务完成，不成功就会滚事务。<br>标准的RR级别是没法解决不可重复读的，MySQL解决了这个问题是因为GAP锁的存在。</p>
+<blockquote>
+<p>事务锁，并发</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">读锁：也叫共享锁、S锁，若事务T对数据对象A加上S锁，则事务T可以读A但不能修改A，其他事务只能再对A加S锁，而不能加X锁，直到T释放A上的S 锁。这保证了其他事务可以读A，但在T释放A上的S锁之前不能对A做任何修改。</div><div class="line"></div><div class="line">写锁：又称排他锁、X锁。若事务T对数据对象A加上X锁，事务T可以读A也可以修改A，其他事务不能再对A加任何锁，直到T释放A上的锁。这保证了其他事务在T释放A上的锁之前不能再读取和修改A。</div><div class="line"></div><div class="line">表锁：操作对象是数据表。Mysql大多数锁策略都支持(常见mysql innodb)，是系统开销最低但并发性最低的一个锁策略。事务t对整个表加读锁，则其他事务可读不可写，若加写锁，则其他事务增删改都不行。</div><div class="line"></div><div class="line">行级锁：操作对象是数据表中的一行。是MVCC技术用的比较多的，但在MYISAM用不了，行级锁用mysql的储存引擎实现而不是mysql服务器。但行级锁对系统开销较大，处理高并发较好。</div><div class="line"></div><div class="line">间隙锁：存在于每个记录之间的锁</div><div class="line"></div><div class="line">意向锁：意向锁是表级锁，是为了兼容行级锁和表级锁之前的一种锁，比如事务A要修改user表的某条记录，加上X行级锁，除此之外会在user表上加入意向锁，事务B申请锁表的时候就会阻塞</div><div class="line"></div><div class="line">查看正在锁的事务</div><div class="line">SELECT * FROM INFORMATION_SCHEMA.INNODB_LOCKS;</div><div class="line">  </div><div class="line">查看等待锁的事务</div><div class="line">SELECT * FROM INFORMATION_SCHEMA.INNODB_LOCK_WAITS;</div></pre></td></tr></table></figure>
+<p><a href="http://hedengcheng.com/?p=771" target="_blank" rel="external">数据库不同隔离级别下的锁分析&amp;经典的SQL场景化的分析</a></p>
+<p>ICP的使用优化场景，在使用二级索引的过滤场景中，ICP能减少基层数据到SQL server服务器的开销，在存储引擎层就能进行过滤（需要满足条件的过滤），主键的过滤不会用到ICP，因为主键回表查询的过程一定需要load全行。<br>如果使用到了ICP的话，explain结果的extra列，会有Using index condition.</p>
+<ol>
+<li>index key（Index First Key/Index Last Key）</li>
+<li>index filter</li>
+<li>table filter</li>
+</ol>
+<p>ICP技术主要是index filter直接利用索引过滤的机制，不需要再次disk io的操作。</p>
+<p>使用场景举例</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">辅助索引INDEX (a, b, c)</div></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> peopleWHERE a=<span class="string">'12345'</span> <span class="keyword">AND</span> b <span class="keyword">LIKE</span> <span class="string">'%xx%'</span><span class="keyword">AND</span> c <span class="keyword">LIKE</span> <span class="string">'%yy%'</span>;</div></pre></td></tr></table></figure>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">若不使用ICP：则是通过二级索引中a的值去基表取出所有a='12345'的数据，然后server层再对b LIKE '%xx%'AND c LIKE '%yy%' 进行过滤</div><div class="line"></div><div class="line">若使用ICP：则b LIKE '%xx%'AND c LIKE '%yy%'的过滤操作在二级索引中完成，然后再去基表取相关数据</div></pre></td></tr></table></figure>
+<blockquote>
+<p>死锁问题追踪</p>
+</blockquote>
+<p>st和not_st两个表，先分析st表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`st`</span> (</div><div class="line">  <span class="string">`id`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</div><div class="line">  <span class="string">`a`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</div><div class="line">  <span class="string">`b`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</div><div class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</div><div class="line">  <span class="keyword">KEY</span> <span class="string">`st_a`</span> (<span class="string">`a`</span>)</div><div class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8;</div></pre></td></tr></table></figure>
+<p>st表已经存在的数据<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">mysql&gt; select * from st;</div><div class="line">+----+------+------+</div><div class="line">| id | a    | b    |</div><div class="line">+----+------+------+</div><div class="line">|  2 |    2 |    2 |</div><div class="line">|  3 |    3 |    3 |</div><div class="line">|  5 |    5 |    5 |</div><div class="line">|  6 |    5 |    5 |</div><div class="line">|  7 |    5 |    5 |</div><div class="line">|  8 |  120 |    5 |</div><div class="line">|  9 |   50 |    5 |</div><div class="line">| 10 |   54 |    5 |</div><div class="line">| 11 |   24 |    5 |</div><div class="line">+----+------+------+</div><div class="line">9 rows in set (0.00 sec)</div></pre></td></tr></table></figure></p>
+<ol>
+<li>开启事务A，delete from st where a = 24; 开启事务B，执行select * from a = 3 for update;</li>
+<li>事务A，   delete from st where a = 3;  事务B，       update st set b = 7 where a = 24;</li>
+</ol>
+<p>这个时候得到提醒<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction</div><div class="line">mysql&gt; SELECT * FROM INFORMATION_SCHEMA.INNODB_LOCKS;</div><div class="line">Empty set, 1 warning (0.00 sec)</div></pre></td></tr></table></figure></p>
+<p>我们找到了MySQL的死锁日志,该锁产生是由于事务A要删除a = 3的记录，但是他已经持有了a=24这条记录的X锁，事务B在已经持有a=3这条记录的X锁之后，需要获得a=24的这把锁。<br>innodb侦测到了死锁的发生会滚了事务B，这是由于两个session之间发生的事务，对应到特性的语言上就是两个线程之间发生了死锁。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line">------------------------</div><div class="line">LATEST DETECTED DEADLOCK</div><div class="line">------------------------</div><div class="line">2019-03-19 14:18:45 0x70000c176000</div><div class="line">*** (1) TRANSACTION:</div><div class="line">TRANSACTION 2650473, ACTIVE 70 sec starting index read</div><div class="line">mysql tables in use 1, locked 1</div><div class="line">LOCK WAIT 5 lock struct(s), heap size 1136, 4 row lock(s)</div><div class="line">MySQL thread id 20, OS thread handle 123145506283520, query id 334 localhost root updating</div><div class="line">update st set b = 7 where a = 24</div><div class="line">*** (1) WAITING FOR THIS LOCK TO BE GRANTED:</div><div class="line">RECORD LOCKS space id 280 page no 4 n bits 80 index st_a of table `bingxin`.`st` trx id 2650473 lock_mode X waiting</div><div class="line">Record lock, heap no 12 PHYSICAL RECORD: n_fields 2; compact format; info bits 32</div><div class="line"> 0: len 4; hex 80000018; asc     ;;</div><div class="line"> 1: len 4; hex 8000000b; asc     ;;</div><div class="line"></div><div class="line">*** (2) TRANSACTION:</div><div class="line">TRANSACTION 2650474, ACTIVE 35 sec starting index read</div><div class="line">mysql tables in use 1, locked 1</div><div class="line">5 lock struct(s), heap size 1136, 4 row lock(s), undo log entries 1</div><div class="line">MySQL thread id 3, OS thread handle 123145505169408, query id 335 localhost root updating</div><div class="line">delete from st where a = 3</div><div class="line">*** (2) HOLDS THE LOCK(S):</div><div class="line">RECORD LOCKS space id 280 page no 4 n bits 80 index st_a of table `bingxin`.`st` trx id 2650474 lock_mode X</div><div class="line">Record lock, heap no 12 PHYSICAL RECORD: n_fields 2; compact format; info bits 32</div><div class="line"> 0: len 4; hex 80000018; asc     ;;</div><div class="line"> 1: len 4; hex 8000000b; asc     ;;</div><div class="line"></div><div class="line">*** (2) WAITING FOR THIS LOCK TO BE GRANTED:</div><div class="line">RECORD LOCKS space id 280 page no 4 n bits 80 index st_a of table `bingxin`.`st` trx id 2650474 lock_mode X waiting</div><div class="line">Record lock, heap no 4 PHYSICAL RECORD: n_fields 2; compact format; info bits 0</div><div class="line"> 0: len 4; hex 80000003; asc     ;;</div><div class="line"> 1: len 4; hex 80000003; asc     ;;</div><div class="line"></div><div class="line">*** WE ROLL BACK TRANSACTION (1)</div></pre></td></tr></table></figure>
+<blockquote>
+<p>数据迁移，单体应用到分布式的应用</p>
+</blockquote>
+<p>从单体应用到分布式的微服务环境对数据库的隔离有了要求，按照业务和数据量来划分底层的数据库，彻底在物理节点上做好隔离。涉及到分库分表，垂直和水平的切割上会有效隔离资源的竞争。<br>相关数据迁移的方案，DBA导入数据，监听数据sync新老表，把DBI节点映射到新的物理节点上，彻底下掉老的节点集群。</p>
+<h3> 2. 缓存/NoSQL </h3> 
+
+<blockquote>
+<p>Memcache</p>
+</blockquote>
+<p>Mecache的依赖是比较重度的，由于对象和memcache的复杂关系，导致了memcache的流量一般保持在高的水位上。还有一个显著的问题是，一般memcache的key较长，会显著增大带宽的消耗<br>Memcache的内存分配是经过优化的,成为Slab内存分配，Slab class -&gt; Slabs -&gt; 分割成n个大小的chunk快，下一组的Slab对应的chunk块比相比于之前的chunk块最大1.25倍的增加，这个解决了内存素片的问题，同时带来了一定的浪费。<br><a href="https://www.cnblogs.com/zhoujinyi/p/5554083.html" target="_blank" rel="external">Memcache的内存分配</a><br><a href="https://blog.csdn.net/qq_17612199/article/details/52608812" target="_blank" rel="external">Memcache面试题</a><br><a href="https://segmentfault.com/a/1190000012950110" target="_blank" rel="external">Memcache原理</a></p>
+<blockquote>
+<p>Redis</p>
+</blockquote>
+<p>Redis的应用广泛，请详细了解Redis的架构和源码，以及相应的数据结构。<br>Bitmap, SortSet, Hyperloglog, Map</p>
+<blockquote>
+<p>Monogo</p>
+</blockquote>
+<p>mongo的应用主要是数据上的文档存储，以及LBS的应用。<br>用来当队列，注意的点是需要注意超时连接并不释放占用内存超高的问题，于内存映射磁盘的同步写，会极大的浪费内存空间，需要优化场景<br><a href="https://www.cnblogs.com/flyr/p/6013831.html" target="_blank" rel="external">Mongo的优缺点</a></p>
+<blockquote>
+<p>HBase</p>
+</blockquote>
+<p>播放进度记录上传Hbase，聊天消息存储在Hbase, 历史私信记录存放在Hbase，用户的行为日志捞取（ds -&gt; hive -&gt; hbase）</p>
+<ol>
+<li>注意Hbase的高可用，多个region相互备份,多个互为备份的region存在在Hbase的Woker上</li>
+<li>Hbase的RowKey设计，以及数据倾斜问题</li>
+</ol>
+<p><a href="https://www.cnblogs.com/caiyisen/p/7424177.html" target="_blank" rel="external">Hbase热区知识</a></p>
+<h3> 3. RPC </h3> 
+
+<blockquote>
+<p>dubbo</p>
+<p>netty</p>
+<p>thrift</p>
+<p>GPRC</p>
+<p>序列化协议</p>
+</blockquote>
+<h3> 4. 框架 </h3> 
+
+<blockquote>
+<p>Spring </p>
+<p>SpringBoot</p>
+<p>Mybatis</p>
+<p>SpringCloud</p>
+</blockquote>
+<h3> 5. 中间件 </h3> 
+
+<blockquote>
+<p>DDB</p>
+<p>MQ(RabbitMQ, Kafka, Nydus, RocketMQ)</p>
+<p>ZK</p>
+<p>Trace</p>
+<p>Batch</p>
+<p>Mlog</p>
+<p>Kschedule(调度中心，数据分片)</p>
+<p>配置中心</p>
+<p>Hytrix</p>
+</blockquote>
+<h3> 6. 大数据平台/大数据相关数据库 </h3>
+
+<blockquote>
+<p>Hadoop</p>
+<p>FLink</p>
+<p>TiDB </p>
+</blockquote>
+<h3> 7. 搜索 </h3> 
+
+<blockquote>
+<p>Ndir</p>
+<p>Lucene</p>
+<p>ES</p>
+</blockquote>
+<h3> 8. 分布式系统 </h3> 
+
+<blockquote>
+<p>降级</p>
+<p>熔断</p>
+<p>限流</p>
+<p>管控平台</p>
+<p>容器化, 部署云, SAAS, PAAS</p>
+</blockquote>
+<h3> 9. 网络相关 </h3> 
+
+<blockquote>
+<p>TCP/IP</p>
+<p>HTTP/HTTPS</p>
+<p>SSL</p>
+<p>CSRF</p>
+<p>Nginx, 跨域</p>
+<p>Keep-alive</p>
+</blockquote>
+<h3> 10. Java基础 </h3> 
+
+<blockquote>
+<p>基础</p>
+<p>JVM </p>
+<p>GC </p>
+<p>类加载</p>
+</blockquote>
+<h3> 11. 数据结构 </h3> 
+
+<h3> 12. 开源框架/代码阅读 </h3> 
+
+<h3> 13. 架构设计 </h3> 
+
+<h3> 14. 项目经验 </h3> 
+
+<h3> 15. 踩坑 </h3> 
+
+<h3> 16. 难点 </h3> 
+
+<blockquote>
+<p>mianfeiliwu</p>
+<p>Kafka迁移,reblance</p>
+<p>推拉模型（主播开关播）</p>
+</blockquote>
+<h3> 17. 工具类 </h3> 
+
+<blockquote>
+<p>gradle</p>
+<p>maven</p>
+<p>ant </p>
+</blockquote>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">-- FIND FC</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2019/03/14/布鲁私FC/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
+    <article id="post-Redis的应用与挑战-第二期" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/03/13/Redis的应用与挑战-第二期/">Redis的应用与挑战-第二期</a>
+    </h1>
+  
+
+        
+        <a href="/2019/03/13/Redis的应用与挑战-第二期/" class="archive-article-date">
+  	<time datetime="2019-03-12T19:37:12.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-03-12</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>Redis的Event模型</p>
+</blockquote>
+<p>server启动完毕后，等待接受命令，首先我们从client发起一个指令开始，经过网络和server建立连接，server处理完成数据再通过网络通道丢还给客户端。我们都知道redis是单线程的，但是它能够处理大量的并发客户端连接。为什么有那么高的性能呢？那就要看看底层的Event事件模型的设计了。</p>
+<p>首先来下redis中的事件模型的结构</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* State of an event based program */</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">aeEventLoop</span> &#123;</span></div><div class="line">    <span class="keyword">int</span> maxfd;   <span class="comment">/* highest file descriptor currently registered */</span></div><div class="line">    <span class="keyword">int</span> setsize; <span class="comment">/* max number of file descriptors tracked */</span></div><div class="line">    <span class="keyword">long</span> <span class="keyword">long</span> timeEventNextId; <span class="comment">// 事件id</span></div><div class="line">    <span class="keyword">time_t</span> lastTime;     <span class="comment">/* Used to detect system clock skew */</span></div><div class="line">    aeFileEvent *events; <span class="comment">/* Registered events */</span> <span class="comment">// 注册的文件事件</span></div><div class="line">    aeFiredEvent *fired; <span class="comment">/* Fired events */</span> <span class="comment">// 就绪的文件事件</span></div><div class="line">    aeTimeEvent *timeEventHead; <span class="comment">// 时间事件</span></div><div class="line">    <span class="keyword">int</span> stop; <span class="comment">// 事件开关</span></div><div class="line">    <span class="keyword">void</span> *apidata; <span class="comment">/* This is used for polling API specific data */</span></div><div class="line">    aeBeforeSleepProc *beforesleep; <span class="comment">// 事件前的处理函数</span></div><div class="line">    aeBeforeSleepProc *aftersleep; <span class="comment">// 事件后的处理函数</span></div><div class="line">&#125; aeEventLoop;</div></pre></td></tr></table></figure>
+<p>事件结构里面包含了基本的两种事件：1.文件事件 2.时间事件， 文件事件包括网络事件等，时间事件更多的是redis的server的定时任务或者是只在某个时间上触发的任务</p>
+<p>文件事件的结构</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// ae.h</span></div><div class="line"><span class="comment">/* File event structure */</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">aeFileEvent</span> &#123;</span> <span class="comment">// 文件事件的结构</span></div><div class="line">    <span class="keyword">int</span> mask; <span class="comment">/* one of AE_(READABLE|WRITABLE|BARRIER) */</span> </div><div class="line">    <span class="comment">// mask的取值</span></div><div class="line">    <span class="comment">// #define AE_NONE 0       /* No events registered. */ // </span></div><div class="line">    <span class="comment">// #define AE_READABLE 1   /* Fire when descriptor is readable. */</span></div><div class="line">    <span class="comment">// #define AE_WRITABLE 2   /* Fire when descriptor is writable. */</span></div><div class="line">    <span class="comment">// #define AE_BARRIER 4    /* With WRITABLE, never fire the event if the</span></div><div class="line">                                  READABLE event already fired in the same event</div><div class="line">                                  loop iteration. Useful when you want to persist</div><div class="line">		                          things to disk before sending replies, <span class="keyword">and</span> want</div><div class="line">		                          to <span class="keyword">do</span> that in a group fashion. */</div><div class="line">    aeFileProc *rfileProc; <span class="comment">// 读事件处理器</span></div><div class="line">    aeFileProc *wfileProc; <span class="comment">// 写事件处理器</span></div><div class="line">    <span class="keyword">void</span> *clientData; <span class="comment">// 多路复用的私有数据</span></div><div class="line">&#125; aeFileEvent;</div></pre></td></tr></table></figure>
+<p>文件就绪事件的结构</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* A fired event */</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">aeFiredEvent</span> &#123;</span></div><div class="line">    <span class="keyword">int</span> fd; <span class="comment">// 文件描述符</span></div><div class="line">    <span class="keyword">int</span> mask; <span class="comment">// 标记</span></div><div class="line">&#125; aeFiredEvent;</div></pre></td></tr></table></figure>
+<p>时间事件的结构</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// ae.h </span></div><div class="line"><span class="comment">/* Time event structure */</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">aeTimeEvent</span> &#123;</span></div><div class="line">    <span class="keyword">long</span> <span class="keyword">long</span> id; <span class="comment">/* time event identifier. */</span></div><div class="line">    <span class="keyword">long</span> when_sec; <span class="comment">/* seconds */</span></div><div class="line">    <span class="keyword">long</span> when_ms; <span class="comment">/* milliseconds */</span></div><div class="line">    aeTimeProc *timeProc; <span class="comment">// 事件处理处理器</span></div><div class="line">    aeEventFinalizerProc *finalizerProc; <span class="comment">// 事件释放函数</span></div><div class="line">    <span class="keyword">void</span> *clientData; <span class="comment">// 多路复用的私有数据</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">aeTimeEvent</span> *<span class="title">prev</span>;</span> <span class="comment">// 上一个的时间事件</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">aeTimeEvent</span> *<span class="title">next</span>;</span> <span class="comment">// 下一个的时间事件</span></div><div class="line">&#125; aeTimeEvent;</div></pre></td></tr></table></figure>
+<p>源码看到这里，不得不吹捧一下Redis的这块模型化的抽象设计，我们来看下整体的ae.h的结构</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 1. 常量和数据结构的定义</span></div><div class="line"></div><div class="line"><span class="comment">// define...</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">aeEventLoop</span>;</span></div><div class="line"></div><div class="line"><span class="comment">/* Types and data structures */</span></div><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="keyword">void</span> <span class="title">aeFileProc</span><span class="params">(struct aeEventLoop *eventLoop, <span class="keyword">int</span> fd, <span class="keyword">void</span> *clientData, <span class="keyword">int</span> mask)</span></span>;</div><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="keyword">int</span> <span class="title">aeTimeProc</span><span class="params">(struct aeEventLoop *eventLoop, <span class="keyword">long</span> <span class="keyword">long</span> id, <span class="keyword">void</span> *clientData)</span></span>;</div><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="keyword">void</span> <span class="title">aeEventFinalizerProc</span><span class="params">(struct aeEventLoop *eventLoop, <span class="keyword">void</span> *clientData)</span></span>;</div><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="keyword">void</span> <span class="title">aeBeforeSleepProc</span><span class="params">(struct aeEventLoop *eventLoop)</span></span>;</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">// 2. 文件事件 &amp; 时间事件 &amp; 事件模型的结构</span></div><div class="line"><span class="comment">/* File event structure */</span> <span class="comment">// aeFileEvent</span></div><div class="line"><span class="comment">/* Time event structure */</span> <span class="comment">// aeTimeEvent</span></div><div class="line"><span class="comment">/* A fired event */</span> <span class="comment">// aeFiredEvent</span></div><div class="line"><span class="comment">/* State of an event based program */</span> <span class="comment">// aeEventLoop的定义 </span></div><div class="line"></div><div class="line"><span class="comment">// 3. 定义了事件模型的核心处理函数api</span></div><div class="line"><span class="comment">/* Prototypes */</span></div><div class="line"><span class="function">aeEventLoop *<span class="title">aeCreateEventLoop</span><span class="params">(<span class="keyword">int</span> setsize)</span></span>;</div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">aeDeleteEventLoop</span><span class="params">(aeEventLoop *eventLoop)</span></span>;</div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">aeStop</span><span class="params">(aeEventLoop *eventLoop)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">aeCreateFileEvent</span><span class="params">(aeEventLoop *eventLoop, <span class="keyword">int</span> fd, <span class="keyword">int</span> mask, aeFileProc *proc, <span class="keyword">void</span> *clientData)</span></span>;</div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">aeDeleteFileEvent</span><span class="params">(aeEventLoop *eventLoop, <span class="keyword">int</span> fd, <span class="keyword">int</span> mask)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">aeGetFileEvents</span><span class="params">(aeEventLoop *eventLoop, <span class="keyword">int</span> fd)</span></span>;</div><div class="line"><span class="function"><span class="keyword">long</span> <span class="keyword">long</span> <span class="title">aeCreateTimeEvent</span><span class="params">(aeEventLoop *eventLoop, <span class="keyword">long</span> <span class="keyword">long</span> milliseconds, aeTimeProc *proc, <span class="keyword">void</span> *clientData, aeEventFinalizerProc *finalizerProc)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">aeDeleteTimeEvent</span><span class="params">(aeEventLoop *eventLoop, <span class="keyword">long</span> <span class="keyword">long</span> id)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">aeProcessEvents</span><span class="params">(aeEventLoop *eventLoop, <span class="keyword">int</span> flags)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">aeWait</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">int</span> mask, <span class="keyword">long</span> <span class="keyword">long</span> milliseconds)</span></span>;</div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">aeMain</span><span class="params">(aeEventLoop *eventLoop)</span></span>;</div><div class="line"><span class="function"><span class="keyword">char</span> *<span class="title">aeGetApiName</span><span class="params">(<span class="keyword">void</span>)</span></span>;</div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">aeSetBeforeSleepProc</span><span class="params">(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep)</span></span>;</div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">aeSetAfterSleepProc</span><span class="params">(aeEventLoop *eventLoop, aeBeforeSleepProc *aftersleep)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">aeGetSetSize</span><span class="params">(aeEventLoop *eventLoop)</span></span>;</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">aeResizeSetSize</span><span class="params">(aeEventLoop *eventLoop, <span class="keyword">int</span> setsize)</span></span>;</div></pre></td></tr></table></figure>
+<p>我们看了事件的结构以及相关的API，让我们回到事件循环本身，来看下事件的创建和循环</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 事件的创建</span></div><div class="line"></div><div class="line"><span class="function">aeEventLoop *<span class="title">aeCreateEventLoop</span><span class="params">(<span class="keyword">int</span> setsize)</span> </span>&#123;</div><div class="line">    aeEventLoop *eventLoop;</div><div class="line">    <span class="keyword">int</span> i;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ((eventLoop = zmalloc(<span class="keyword">sizeof</span>(*eventLoop))) == <span class="literal">NULL</span>) <span class="keyword">goto</span> err;</div><div class="line">    eventLoop-&gt;events = zmalloc(<span class="keyword">sizeof</span>(aeFileEvent)*setsize);</div><div class="line">    eventLoop-&gt;fired = zmalloc(<span class="keyword">sizeof</span>(aeFiredEvent)*setsize);</div><div class="line">    <span class="keyword">if</span> (eventLoop-&gt;events == <span class="literal">NULL</span> || eventLoop-&gt;fired == <span class="literal">NULL</span>) <span class="keyword">goto</span> err;</div><div class="line">    eventLoop-&gt;setsize = setsize;</div><div class="line">    eventLoop-&gt;lastTime = time(<span class="literal">NULL</span>);</div><div class="line">    eventLoop-&gt;timeEventHead = <span class="literal">NULL</span>;</div><div class="line">    eventLoop-&gt;timeEventNextId = <span class="number">0</span>;</div><div class="line">    eventLoop-&gt;stop = <span class="number">0</span>;</div><div class="line">    eventLoop-&gt;maxfd = <span class="number">-1</span>;</div><div class="line">    eventLoop-&gt;beforesleep = <span class="literal">NULL</span>;</div><div class="line">    eventLoop-&gt;aftersleep = <span class="literal">NULL</span>;</div><div class="line">    <span class="keyword">if</span> (aeApiCreate(eventLoop) == <span class="number">-1</span>) <span class="keyword">goto</span> err; <span class="comment">// 调用底层epoll, 复制给eventLoop</span></div><div class="line">    <span class="comment">/* Events with mask == AE_NONE are not set. So let's initialize the</span></div><div class="line">     * vector with it. */</div><div class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; setsize; i++)</div><div class="line">        eventLoop-&gt;events[i].mask = AE_NONE;</div><div class="line">    <span class="keyword">return</span> eventLoop;</div><div class="line"></div><div class="line">err:</div><div class="line">    <span class="keyword">if</span> (eventLoop) &#123; <span class="comment">// 错误后释放资源</span></div><div class="line">        zfree(eventLoop-&gt;events);</div><div class="line">        zfree(eventLoop-&gt;fired);</div><div class="line">        zfree(eventLoop);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>事件循环的处理重要逻辑</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">aeMain</span><span class="params">(aeEventLoop *eventLoop)</span> </span>&#123;</div><div class="line">    eventLoop-&gt;stop = <span class="number">0</span>;</div><div class="line">    <span class="keyword">while</span> (!eventLoop-&gt;stop) &#123;</div><div class="line">        <span class="keyword">if</span> (eventLoop-&gt;beforesleep != <span class="literal">NULL</span>)</div><div class="line">            eventLoop-&gt;beforesleep(eventLoop);</div><div class="line">        aeProcessEvents(eventLoop, AE_ALL_EVENTS|AE_CALL_AFTER_SLEEP);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 进入时间循环的核心, 循环先处理了文件事件，之后处理时间事件</span></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">aeProcessEvents</span><span class="params">(aeEventLoop *eventLoop, <span class="keyword">int</span> flags)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">int</span> processed = <span class="number">0</span>, numevents;</div><div class="line"></div><div class="line">    <span class="comment">/* Nothing to do? return ASAP */</span></div><div class="line">    <span class="keyword">if</span> (!(flags &amp; AE_TIME_EVENTS) &amp;&amp; !(flags &amp; AE_FILE_EVENTS)) <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">/* Note that we want call select() even if there are no</span></div><div class="line">     * file events to process as long as we want to process time</div><div class="line">     * events, in order to sleep until the next time event is ready</div><div class="line">     * to fire. */</div><div class="line">    <span class="keyword">if</span> (eventLoop-&gt;maxfd != <span class="number">-1</span> ||</div><div class="line">        ((flags &amp; AE_TIME_EVENTS) &amp;&amp; !(flags &amp; AE_DONT_WAIT))) &#123;</div><div class="line">        <span class="keyword">int</span> j;</div><div class="line">        aeTimeEvent *shortest = <span class="literal">NULL</span>;</div><div class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">timeval</span> <span class="title">tv</span>, *<span class="title">tvp</span>;</span></div><div class="line"></div><div class="line">        <span class="keyword">if</span> (flags &amp; AE_TIME_EVENTS &amp;&amp; !(flags &amp; AE_DONT_WAIT))</div><div class="line">            shortest = aeSearchNearestTimer(eventLoop); <span class="comment">// 获取最近的时间事件</span></div><div class="line">        <span class="keyword">if</span> (shortest) &#123; <span class="comment">// 如果有时间事件</span></div><div class="line">            <span class="keyword">long</span> now_sec, now_ms;</div><div class="line"></div><div class="line">            aeGetTime(&amp;now_sec, &amp;now_ms);</div><div class="line">            tvp = &amp;tv;</div><div class="line"></div><div class="line">            <span class="comment">/* How many milliseconds we need to wait for the next</span></div><div class="line">             * time event to fire? */</div><div class="line">            <span class="keyword">long</span> <span class="keyword">long</span> ms =</div><div class="line">                (shortest-&gt;when_sec - now_sec)*<span class="number">1000</span> +</div><div class="line">                shortest-&gt;when_ms - now_ms;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (ms &gt; <span class="number">0</span>) &#123;</div><div class="line">                tvp-&gt;tv_sec = ms/<span class="number">1000</span>;</div><div class="line">                tvp-&gt;tv_usec = (ms % <span class="number">1000</span>)*<span class="number">1000</span>;</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                tvp-&gt;tv_sec = <span class="number">0</span>;</div><div class="line">                tvp-&gt;tv_usec = <span class="number">0</span>;</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">// 没有时间事件</span></div><div class="line">            <span class="comment">/* If we have to check for events but need to return</span></div><div class="line">             * ASAP because of AE_DONT_WAIT we need to set the timeout</div><div class="line">             * to zero */</div><div class="line">            <span class="keyword">if</span> (flags &amp; AE_DONT_WAIT) &#123;</div><div class="line">                tv.tv_sec = tv.tv_usec = <span class="number">0</span>;</div><div class="line">                tvp = &amp;tv;</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="comment">/* Otherwise we can block */</span></div><div class="line">                tvp = <span class="literal">NULL</span>; <span class="comment">/* wait forever */</span></div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">/* Call the multiplexing API, will return only on timeout or when</span></div><div class="line">         * some event fires. */</div><div class="line">        numevents = aeApiPoll(eventLoop, tvp); <span class="comment">// 处理文件事件</span></div><div class="line"></div><div class="line">        <span class="comment">/* After sleep callback. */</span></div><div class="line">        <span class="keyword">if</span> (eventLoop-&gt;aftersleep != <span class="literal">NULL</span> &amp;&amp; flags &amp; AE_CALL_AFTER_SLEEP)</div><div class="line">            eventLoop-&gt;aftersleep(eventLoop); <span class="comment">// sleep callback的执行</span></div><div class="line"></div><div class="line">        <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; numevents; j++) &#123; <span class="comment">// 开始处理最近的文件事件</span></div><div class="line">            aeFileEvent *fe = &amp;eventLoop-&gt;events[eventLoop-&gt;fired[j].fd];</div><div class="line">            <span class="keyword">int</span> mask = eventLoop-&gt;fired[j].mask;</div><div class="line">            <span class="keyword">int</span> fd = eventLoop-&gt;fired[j].fd;</div><div class="line">            <span class="keyword">int</span> fired = <span class="number">0</span>; <span class="comment">/* Number of events fired for current fd. */</span></div><div class="line"></div><div class="line">            <span class="comment">/* Normally we execute the readable event first, and the writable</span></div><div class="line">             * event laster. This is useful as sometimes we may be able</div><div class="line">             * to serve the reply of a query immediately after processing the</div><div class="line">             * query.</div><div class="line">             *</div><div class="line">             * However if AE_BARRIER is set in the mask, our application is</div><div class="line">             * asking us to do the reverse: never fire the writable event</div><div class="line">             * after the readable. In such a case, we invert the calls.</div><div class="line">             * This is useful when, for instance, we want to do things</div><div class="line">             * in the beforeSleep() hook, like fsynching a file to disk,</div><div class="line">             * before replying to a client. */</div><div class="line">            <span class="keyword">int</span> invert = fe-&gt;mask &amp; AE_BARRIER;</div><div class="line"></div><div class="line">            <span class="comment">/* Note the "fe-&gt;mask &amp; mask &amp; ..." code: maybe an already</span></div><div class="line">             * processed event removed an element that fired and we still</div><div class="line">             * didn't processed, so we check if the event is still valid.</div><div class="line">             *</div><div class="line">             * Fire the readable event if the call sequence is not</div><div class="line">             * inverted. */</div><div class="line">            <span class="keyword">if</span> (!invert &amp;&amp; fe-&gt;mask &amp; mask &amp; AE_READABLE) &#123; <span class="comment">// 只读事件</span></div><div class="line">                fe-&gt;rfileProc(eventLoop,fd,fe-&gt;clientData,mask);</div><div class="line">                fired++;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="comment">/* Fire the writable event. */</span></div><div class="line">            <span class="keyword">if</span> (fe-&gt;mask &amp; mask &amp; AE_WRITABLE) &#123; <span class="comment">// 写事件</span></div><div class="line">                <span class="keyword">if</span> (!fired || fe-&gt;wfileProc != fe-&gt;rfileProc) &#123;</div><div class="line">                    fe-&gt;wfileProc(eventLoop,fd,fe-&gt;clientData,mask);</div><div class="line">                    fired++;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="comment">/* If we have to invert the call, fire the readable event now</span></div><div class="line">             * after the writable one. */</div><div class="line">            <span class="keyword">if</span> (invert &amp;&amp; fe-&gt;mask &amp; mask &amp; AE_READABLE) &#123; <span class="comment">// 必须处理invert</span></div><div class="line">                <span class="keyword">if</span> (!fired || fe-&gt;wfileProc != fe-&gt;rfileProc) &#123;</div><div class="line">                    fe-&gt;rfileProc(eventLoop,fd,fe-&gt;clientData,mask);</div><div class="line">                    fired++;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            processed++;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">/* Check time events */</span></div><div class="line">    <span class="keyword">if</span> (flags &amp; AE_TIME_EVENTS) <span class="comment">// 执行时间事件</span></div><div class="line">        processed += processTimeEvents(eventLoop);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> processed; <span class="comment">/* return the number of processed file/time events */</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">-Redis -数据结构</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2019/03/13/Redis的应用与挑战-第二期/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+
+
+
+
+  
     <article id="post-Redis的应用与挑战" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -181,12 +499,12 @@
         <blockquote>
 <p>写在前面</p>
 </blockquote>
-<p>Redis的应用场景的广阔，是其他关系型数据库代替不了的。在知道了怎么用的前提下，我们更希望专注于内部的实现，以及内部的空间结构，在遇到问题的时候可以指导我们大致的思路方向。 这期就从应用的层面来熟悉下经常接触的这个K-V数据库。<br>笔者会从下面几个方面来介绍下相关的原理以及曾经踩过的坑:</p>
+<p>Redis的应用场景的广阔，是其他关系型数据库代替不了的。在知道了怎么用的前提下，我们更希望专注于内部的实现，以及内部的空间结构，在遇到问题的时候可以指导我们大致的思路方向。 这期就从应用的层面来熟悉下经常接触的这个K-V数据库。<br>笔者会从下面几个方面来介绍下相关的原理以及曾经踩过的坑， 由于内容过多，本次会优先梳理redis server和client的交互过程</p>
 <ul>
 <li>Redis的client与server的交互过程以及底层的执行顺序</li>
+<li>Event事件模型</li>
 <li>Redis key的删除</li>
 <li>Redis的锁</li>
-<li>Event事件模型</li>
 <li>lua脚本</li>
 </ul>
 <blockquote>
@@ -196,25 +514,34 @@
 <li>我们首先来看下常用的getKey和setKey以及相关类似的命令，看下图</li>
 </ol>
 <p><img src="/imgs/2019/02/28/WechatIMG1.jpeg" width="1240" hegiht="400" align="center"></p>
-<p>为什么要从getKey setKey深入呢？这是因为这里面覆盖到的逻辑和可延伸的东西比较多，笔者想站在这个视角试图揭开Redis server到底是和client的交互是一个怎样的过程。<br>经常用redis的同学可能用起来很爽很开心，性能也不必担心，上图是个大致的流程get/set key需要处理以及会触发的逻辑，实际上server底层是非常复杂的，如果没有对底层有个仔细的探究，当出现问题的时候，我们是无从下手来排查的，时间就是KPI。那我们开始吧～</p>
-<p>首先我们捋一遍流程，redis底层是c写的，这个代码对于Javaer实际上看起来并不是那么舒心，因为有太多的逻辑上的跳转，主题逻辑也是面向过程的，笔者在梳理的过程中也时常<br>遇到看到下面就忘记了上面的具体的处理逻辑，那我们先整体看下redis的server在初始化到ready的过程中的处理逻辑：</p>
+<p>为什么要从getKey setKey深入呢？这是因为这里面覆盖到的逻辑和可延伸的东西比较多，笔者想站在这个视角试图揭开Redis server到底是和client的交互是一个怎样的过程。<br>经常用redis的同学可能用起来很爽很开心，性能也不必担心，上图是个大致的流程get/set key需要处理以及会触发的逻辑，实际上server底层是非常复杂的，如果没有对底层有个仔细的探究，当出现问题的时候，我们是无从下手来排查的，时间就是KPI。那我们开始吧</p>
+<p>首先我们捋一遍流程，redis底层是c写的，这个代码对于Javaer实际上看起来并不是那么舒心，因为有太多的逻辑上的跳转，主题逻辑也是面向过程的，笔者在梳理的过程中也时常<br>遇到看到下面就忘记了上面的具体的处理逻辑，好在Redis的源码上注释比较详细，那我们先整体看下redis的server在初始化到ready的过程中的处理逻辑：</p>
 <p><img src="/imgs/2019/03/08/redis-server-init.jpeg" width="1400" hegiht="640" align="center"></p>
-<p>大体上的流程处理分为这几个步骤</p>
-<ol>
-<li>initServerConfig</li>
-</ol>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">initServerConfig</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> j;</div><div class="line"></div><div class="line">    pthread_mutex_init(&amp;server.next_client_id_mutex,<span class="literal">NULL</span>); <span class="comment">// 互斥锁初始化</span></div><div class="line">    pthread_mutex_init(&amp;server.lruclock_mutex,<span class="literal">NULL</span>); <span class="comment">// 互斥锁初始化</span></div><div class="line">    pthread_mutex_init(&amp;server.unixtime_mutex,<span class="literal">NULL</span>); <span class="comment">// 互斥锁初始化</span></div><div class="line">    <span class="comment">//...</span></div><div class="line"></div><div class="line">    <span class="comment">/* Replication related */</span></div><div class="line"></div><div class="line">    <span class="comment">// 设置客户端的输出缓冲区限制</span></div><div class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; REDIS_CLIENT_LIMIT_NUM_CLASSES; j++) &#123;</div><div class="line">        server.client_obuf_limits[j] = clientBufferLimitsDefaults[j];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<ol>
-<li>moduleInitModulesSystem</li>
-<li>loading config file</li>
-<li>init server</li>
-<li>AOF/RDB load</li>
-<li>Enable Cluster</li>
-<li>aeSetBeforeSleepProc</li>
-<li>aeMain</li>
-<li>aeDeleteEventLoop</li>
-</ol>
-<p>先看把server拉起来的部分，Redis的server struct的定义上有很多属性，大致可以分为几个大的部分: </p>
+<p>main方法的处理大体上的流程处理分为这几个步骤</p>
+<blockquote>
+<p>1.initServerConfig</p>
+</blockquote>
+<p>这个初始化里面实际上是对系统的初始化进行赋值等相关的一些处理</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">initServerConfig</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> j;</div><div class="line"></div><div class="line">    pthread_mutex_init(&amp;server.next_client_id_mutex,<span class="literal">NULL</span>); <span class="comment">// 互斥锁初始化</span></div><div class="line">    pthread_mutex_init(&amp;server.lruclock_mutex,<span class="literal">NULL</span>); <span class="comment">// 互斥锁初始化</span></div><div class="line">    pthread_mutex_init(&amp;server.unixtime_mutex,<span class="literal">NULL</span>); <span class="comment">// 互斥锁初始化</span></div><div class="line">    <span class="comment">//...</span></div><div class="line"></div><div class="line">    <span class="comment">/* Replication related */</span></div><div class="line"></div><div class="line">    <span class="comment">// 设置客户端的输出缓冲区限制</span></div><div class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; REDIS_CLIENT_LIMIT_NUM_CLASSES; j++) &#123;</div><div class="line">        server.client_obuf_limits[j] = clientBufferLimitsDefaults[j];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 初始化load default config</span></div><div class="line"></div><div class="line">    <span class="comment">// 初始化command table</span></div><div class="line">    <span class="comment">// redis command的struct </span></div><div class="line">    <span class="comment">// slowlog的设置</span></div><div class="line">    server.slowlog_log_slower_than = CONFIG_DEFAULT_SLOWLOG_LOG_SLOWER_THAN;</div><div class="line">    server.slowlog_max_len = CONFIG_DEFAULT_SLOWLOG_MAX_LEN;</div><div class="line"></div><div class="line">    <span class="comment">/* Debugging */</span></div><div class="line">    <span class="comment">/* Debugging */</span></div><div class="line">    <span class="comment">// ...</span></div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="keyword">void</span> <span class="title">redisCommandProc</span><span class="params">(client *c)</span></span>;</div><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="keyword">int</span> *<span class="title">redisGetKeysProc</span><span class="params">(struct redisCommand *cmd, robj **argv, <span class="keyword">int</span> argc, <span class="keyword">int</span> *numkeys)</span></span>;</div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">redisCommand</span> &#123;</span></div><div class="line">    <span class="keyword">char</span> *name;</div><div class="line">    redisCommandProc *proc; <span class="comment">// 操作函数</span></div><div class="line">    <span class="keyword">int</span> arity; <span class="comment">//参数个数</span></div><div class="line">    <span class="keyword">char</span> *sflags; <span class="comment">/* Flags as string representation, one char per flag. */</span></div><div class="line">    <span class="keyword">int</span> flags;    <span class="comment">/* The actual flags, obtained from the 'sflags' field. */</span></div><div class="line">    <span class="comment">/* Use a function to determine keys arguments in a command line.</span></div><div class="line">     * Used for Redis Cluster redirect. */</div><div class="line">    redisGetKeysProc *getkeys_proc; <span class="comment">// cluster模式的时候使用</span></div><div class="line">    <span class="comment">/* What keys should be loaded in background when calling this command? */</span></div><div class="line">    <span class="keyword">int</span> firstkey; <span class="comment">/* The first argument that's a key (0 = no keys) */</span></div><div class="line">    <span class="keyword">int</span> lastkey;  <span class="comment">/* The last argument that's a key */</span></div><div class="line">    <span class="keyword">int</span> keystep;  <span class="comment">/* The step between first and last key */</span></div><div class="line">    <span class="keyword">long</span> <span class="keyword">long</span> microseconds, calls;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>redis server load的command配置，命令节选, 实际上redis的支持的命令是非常丰富的，包括客户端发来的api命令以及查看系统状态等的命令<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">redisCommand</span> <span class="title">redisCommandTable</span>[] = &#123;</span></div><div class="line">    &#123;<span class="string">"module"</span>,moduleCommand,<span class="number">-2</span>,<span class="string">"as"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"get"</span>,getCommand,<span class="number">2</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"set"</span>,setCommand,<span class="number">-3</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"setnx"</span>,setnxCommand,<span class="number">3</span>,<span class="string">"wmF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"setex"</span>,setexCommand,<span class="number">4</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"append"</span>,appendCommand,<span class="number">3</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"strlen"</span>,strlenCommand,<span class="number">2</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"del"</span>,delCommand,<span class="number">-2</span>,<span class="string">"w"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">-1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"unlink"</span>,unlinkCommand,<span class="number">-2</span>,<span class="string">"wF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">-1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"exists"</span>,existsCommand,<span class="number">-2</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">-1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"setbit"</span>,setbitCommand,<span class="number">4</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;, <span class="comment">// 512M的size现在</span></div><div class="line">    &#123;<span class="string">"getbit"</span>,getbitCommand,<span class="number">3</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"substr"</span>,getrangeCommand,<span class="number">4</span>,<span class="string">"r"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    <span class="comment">// etc...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<blockquote>
+<p>2.moduleInitModulesSystem</p>
+</blockquote>
+<p>这个地方的核心其实是Redis把服务按照moudle的模式来扩展出来，用户也可以加入这个扩展来实现自己的数据结构和命令。把已经有的redis提供的api注册到server上<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">moduleInitModulesSystem</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">	moduleUnblockedClients = listCreate(); <span class="comment">// 初始化server维持的各种client的数据信息</span></div><div class="line">    server.loadmodule_queue = listCreate();</div><div class="line">    modules = dictCreate(&amp;modulesDictType,<span class="literal">NULL</span>);</div><div class="line"></div><div class="line">    <span class="comment">/* Set up the keyspace notification susbscriber list and static client */</span></div><div class="line">    moduleKeyspaceSubscribers = listCreate();</div><div class="line">    moduleFreeContextReusedClient = createClient(<span class="number">-1</span>);</div><div class="line">    moduleFreeContextReusedClient-&gt;flags |= CLIENT_MODULE;</div><div class="line"></div><div class="line">    moduleRegisterCoreAPI(); <span class="comment">// 注册导出的API到server维持的 server.moduleapi = dictCreate(&amp;moduleAPIDictType,NULL);</span></div><div class="line"></div><div class="line">    <span class="comment">// ...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// module.c</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">moduleRegisterCoreAPI</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">    server.moduleapi = dictCreate(&amp;moduleAPIDictType,<span class="literal">NULL</span>);</div><div class="line">    REGISTER_API(Alloc);</div><div class="line">    REGISTER_API(Calloc);</div><div class="line">    <span class="comment">// ...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>下面判断了server是否开启了哨兵模式，如果开启哨兵模式，则初始化哨兵的相关配置和初始化设置<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (server.sentinel_mode) &#123;</div><div class="line">    initSentinelConfig();</div><div class="line">    initSentinel();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Perform the Sentinel mode initialization. */</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">initSentinel</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> j;</div><div class="line"></div><div class="line">    <span class="comment">/* Remove usual Redis commands from the command table, then just add</span></div><div class="line">     * the SENTINEL command. */</div><div class="line">    dictEmpty(server.commands,<span class="literal">NULL</span>); <span class="comment">// server.command置空</span></div><div class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; <span class="keyword">sizeof</span>(sentinelcmds)/<span class="keyword">sizeof</span>(sentinelcmds[<span class="number">0</span>]); j++) &#123;</div><div class="line">        <span class="keyword">int</span> retval;</div><div class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">redisCommand</span> *<span class="title">cmd</span> = <span class="title">sentinelcmds</span>+<span class="title">j</span>;</span></div><div class="line"></div><div class="line">        retval = dictAdd(server.commands, sdsnew(cmd-&gt;name), cmd);</div><div class="line">        serverAssert(retval == DICT_OK);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/* Initialize various data structures. */</span></div><div class="line">    sentinel.current_epoch = <span class="number">0</span>;</div><div class="line">    sentinel.masters = dictCreate(&amp;instancesDictType,<span class="literal">NULL</span>);</div><div class="line">    <span class="comment">// ...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>3.loading config file</p>
+</blockquote>
+<p>这个地方是redis开始读取相关的系统设置，也包括读取用户的配置文件等</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* All the other options are parsed and conceptually appended to the</span></div><div class="line"> * configuration file. For instance --port 6380 will generate the</div><div class="line"> * string "port 6380\n" to be parsed after the actual file name</div><div class="line"> * is parsed, if any. */</div><div class="line"><span class="keyword">while</span>(j != argc) &#123;</div><div class="line">    <span class="keyword">if</span> (argv[j][<span class="number">0</span>] == <span class="string">'-'</span> &amp;&amp; argv[j][<span class="number">1</span>] == <span class="string">'-'</span>) &#123;</div><div class="line">        <span class="comment">/* Option name */</span></div><div class="line">        <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(argv[j], <span class="string">"--check-rdb"</span>)) &#123;</div><div class="line">            <span class="comment">/* Argument has no options, need to skip for parsing. */</span></div><div class="line">            j++;</div><div class="line">            <span class="keyword">continue</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (sdslen(options)) options = sdscat(options,<span class="string">"\n"</span>);</div><div class="line">        options = sdscat(options,argv[j]+<span class="number">2</span>);</div><div class="line">        options = sdscat(options,<span class="string">" "</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">/* Option argument */</span></div><div class="line">        options = sdscatrepr(options,argv[j],<span class="built_in">strlen</span>(argv[j]));</div><div class="line">        options = sdscat(options,<span class="string">" "</span>);</div><div class="line">    &#125;</div><div class="line">    j++;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>4.init server</p>
+</blockquote>
+<p>到这个地方实际上才到了重头戏，重要的启动server阶段，这个里面做的事情非常多，笔者整理了下大概的重要节点和步骤</p>
+<p>先看把server拉起来的部分，Redis的server struct的定义上有很多属性，实际维持了非常多的变量，非常复杂，大致可以分为几个大的部分: </p>
 <p><img src="/imgs/2019/03/07/WechatIMG1.jpeg" width="760" hegiht="400" align="center"></p>
 <ul>
 <li>General</li>
@@ -232,14 +559,49 @@
 <li>Pub / Sub</li>
 </ul>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">redisServer</span> &#123;</span></div><div class="line">    <span class="comment">/* General */</span></div><div class="line">    <span class="keyword">pid_t</span> pid;                  <span class="comment">/* Main process pid. */</span></div><div class="line">    <span class="keyword">char</span> *configfile;           <span class="comment">/* Absolute config file path, or NULL */</span></div><div class="line">    <span class="keyword">char</span> *executable;           <span class="comment">/* Absolute executable file path. */</span></div><div class="line">    <span class="keyword">char</span> **exec_argv;           <span class="comment">/* Executable argv vector (copy). */</span></div><div class="line">    <span class="keyword">int</span> dynamic_hz;             <span class="comment">/* Change hz value depending on # of clients. */</span></div><div class="line">    <span class="keyword">int</span> config_hz;              <span class="comment">/* Configured HZ value. May be different than</span></div><div class="line">                                   the actual 'hz' field value if dynamic-hz</div><div class="line">                                   is enabled. */</div><div class="line">    <span class="keyword">int</span> hz;                     <span class="comment">/* serverCron() calls frequency in hertz */</span></div><div class="line"></div><div class="line">    <span class="comment">//etc...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>Redis的command table的结构，在经过初始化server的相关配置后，server会load command table, 在每次client带着参数来查询的时候，command实际上相当于是个map表，给出跳转处理的函数，进而执行下一步。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="keyword">void</span> <span class="title">redisCommandProc</span><span class="params">(client *c)</span></span>;</div><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="keyword">int</span> *<span class="title">redisGetKeysProc</span><span class="params">(struct redisCommand *cmd, robj **argv, <span class="keyword">int</span> argc, <span class="keyword">int</span> *numkeys)</span></span>;</div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">redisCommand</span> &#123;</span></div><div class="line">    <span class="keyword">char</span> *name;</div><div class="line">    redisCommandProc *proc; <span class="comment">// 操作函数</span></div><div class="line">    <span class="keyword">int</span> arity; <span class="comment">//参数个数</span></div><div class="line">    <span class="keyword">char</span> *sflags; <span class="comment">/* Flags as string representation, one char per flag. */</span></div><div class="line">    <span class="keyword">int</span> flags;    <span class="comment">/* The actual flags, obtained from the 'sflags' field. */</span></div><div class="line">    <span class="comment">/* Use a function to determine keys arguments in a command line.</span></div><div class="line">     * Used for Redis Cluster redirect. */</div><div class="line">    redisGetKeysProc *getkeys_proc; <span class="comment">// cluster模式的时候使用</span></div><div class="line">    <span class="comment">/* What keys should be loaded in background when calling this command? */</span></div><div class="line">    <span class="keyword">int</span> firstkey; <span class="comment">/* The first argument that's a key (0 = no keys) */</span></div><div class="line">    <span class="keyword">int</span> lastkey;  <span class="comment">/* The last argument that's a key */</span></div><div class="line">    <span class="keyword">int</span> keystep;  <span class="comment">/* The step between first and last key */</span></div><div class="line">    <span class="keyword">long</span> <span class="keyword">long</span> microseconds, calls;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
-<p>server load的command配置，命令节选<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">redisCommand</span> <span class="title">redisCommandTable</span>[] = &#123;</span></div><div class="line">    &#123;<span class="string">"module"</span>,moduleCommand,<span class="number">-2</span>,<span class="string">"as"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"get"</span>,getCommand,<span class="number">2</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"set"</span>,setCommand,<span class="number">-3</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"setnx"</span>,setnxCommand,<span class="number">3</span>,<span class="string">"wmF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"setex"</span>,setexCommand,<span class="number">4</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"append"</span>,appendCommand,<span class="number">3</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"strlen"</span>,strlenCommand,<span class="number">2</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"del"</span>,delCommand,<span class="number">-2</span>,<span class="string">"w"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">-1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"unlink"</span>,unlinkCommand,<span class="number">-2</span>,<span class="string">"wF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">-1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"exists"</span>,existsCommand,<span class="number">-2</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">-1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"setbit"</span>,setbitCommand,<span class="number">4</span>,<span class="string">"wm"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;, <span class="comment">// 512M的size现在</span></div><div class="line">    &#123;<span class="string">"getbit"</span>,getbitCommand,<span class="number">3</span>,<span class="string">"rF"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    &#123;<span class="string">"substr"</span>,getrangeCommand,<span class="number">4</span>,<span class="string">"r"</span>,<span class="number">0</span>,<span class="literal">NULL</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;,</div><div class="line">    <span class="comment">// etc, 实际上redis的支持的命令是非常多的，包括客户端发来的api命令以及查看系统状态等的命令</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>slowlog</p>
-<p>server启动完毕后，等待接受命令，首先我们从client发起一个指令开始：</p>
+<p>我们回到initServer的流程上，首先会创建共享变量createSharedObjects(), 这里类似于Java的Integer的cache，把某些的常量数据cache起来，主要是为了优化内存的占用，<br>统一分配成全局共享的变量. 着重说一下int类型，redis server在init 的时候定义了int的共享变量在10000以下的int 全部都是共享内存，在其他数据结构上用的到int也都会从这里分配<br>从而节省空间。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sharedObjectsStruct</span> &#123;</span></div><div class="line">    robj *crlf, *ok, *err, *emptybulk, *czero, *cone, *cnegone, *pong, *space,</div><div class="line">    *colon, *nullbulk, *nullmultibulk, *queued,</div><div class="line">    *emptymultibulk, *wrongtypeerr, *nokeyerr, *syntaxerr, *sameobjecterr,</div><div class="line">    *outofrangeerr, *noscripterr, *loadingerr, *slowscripterr, *bgsaveerr,</div><div class="line">    *masterdownerr, *roslaveerr, *execaborterr, *noautherr, *noreplicaserr,</div><div class="line">    *busykeyerr, *oomerr, *plus, *messagebulk, *pmessagebulk, *subscribebulk,</div><div class="line">    *unsubscribebulk, *psubscribebulk, *punsubscribebulk, *del, *unlink,</div><div class="line">    *rpop, *lpop, *lpush, *rpoplpush, *zpopmin, *zpopmax, *emptyscan,</div><div class="line">    *select[PROTO_SHARED_SELECT_CMDS],</div><div class="line">    *integers[OBJ_SHARED_INTEGERS],</div><div class="line">    *mbulkhdr[OBJ_SHARED_BULKHDR_LEN], <span class="comment">/* "*&lt;value&gt;\r\n" */</span></div><div class="line">    *bulkhdr[OBJ_SHARED_BULKHDR_LEN];  <span class="comment">/* "$&lt;value&gt;\r\n" */</span></div><div class="line">    sds minstring, maxstring;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// server.c: 1423 line</span></div><div class="line"></div><div class="line"><span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; OBJ_SHARED_INTEGERS; j++) &#123;</div><div class="line">    shared.integers[j] =</div><div class="line">        makeObjectShared(createObject(OBJ_STRING,(<span class="keyword">void</span>*)(<span class="keyword">long</span>)j));</div><div class="line">    shared.integers[j]-&gt;encoding = OBJ_ENCODING_INT;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>server创建核心事件循环eventLoop, 这个我们留着下次着重分析，继续向下看打开TCP端口监听client的connection,然后初始化DB</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Create the Redis databases, and initialize other internal state. */</span></div><div class="line"><span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; server.dbnum; j++) &#123; <span class="comment">// DB的数量</span></div><div class="line">    server.db[j].dict = dictCreate(&amp;dbDictType,<span class="literal">NULL</span>); <span class="comment">// DB的字典</span></div><div class="line">    server.db[j].expires = dictCreate(&amp;keyptrDictType,<span class="literal">NULL</span>); <span class="comment">// 维持过期的数据</span></div><div class="line">    server.db[j].blocking_keys = dictCreate(&amp;keylistDictType,<span class="literal">NULL</span>); <span class="comment">// 维持阻塞key, 在当下取不到数据的时候，会把该key挂载在改列表上，知道client来轮训到值</span></div><div class="line">    server.db[j].ready_keys = dictCreate(&amp;objectKeyPointerValueDictType,<span class="literal">NULL</span>); <span class="comment">// 和blocking_keys对应，这个是key对应的数据准备好了，会挂载在该列表上</span></div><div class="line">    server.db[j].watched_keys = dictCreate(&amp;keylistDictType,<span class="literal">NULL</span>); <span class="comment">// watchKeys的列表，当watch的key被改变，会触发到touchKey, watchKeys会记录下来,对应的事物就会执行失败</span></div><div class="line">    server.db[j].id = j;</div><div class="line">    server.db[j].avg_ttl = <span class="number">0</span>;</div><div class="line">    server.db[j].defrag_later = listCreate();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>server创建timeEvent,以及fileEvent，然后注册事件，监听客户端的请求，具体的事件模型我们继续先放着，下面详细介绍</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Create the timer callback, this is our way to process many background</span></div><div class="line"> * operations incrementally, like clients timeout, eviction of unaccessed</div><div class="line"> * expired keys and so forth. */</div><div class="line"><span class="keyword">if</span> (aeCreateTimeEvent(server.el, <span class="number">1</span>, serverCron, <span class="literal">NULL</span>, <span class="literal">NULL</span>) == AE_ERR) &#123; <span class="comment">// 维持后台的操作，客户端超时，过期key等的处理</span></div><div class="line">    serverPanic(<span class="string">"Can't create event loop timers."</span>);</div><div class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/* Create an event handler for accepting new connections in TCP and Unix</span></div><div class="line"> * domain sockets. */</div><div class="line"><span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; server.ipfd_count; j++) &#123;</div><div class="line">    <span class="keyword">if</span> (aeCreateFileEvent(server.el, server.ipfd[j], AE_READABLE,</div><div class="line">        acceptTcpHandler,<span class="literal">NULL</span>) == AE_ERR)</div><div class="line">        &#123;</div><div class="line">            serverPanic(</div><div class="line">                <span class="string">"Unrecoverable error creating server.ipfd file event."</span>);</div><div class="line">        &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">    <span class="comment">/* Register a readable event for the pipe used to awake the event loop</span></div><div class="line"> * when a blocked client in a module needs attention. */</div><div class="line"><span class="keyword">if</span> (aeCreateFileEvent(server.el, server.module_blocked_pipe[<span class="number">0</span>], AE_READABLE,</div><div class="line">    moduleBlockedClientPipeReadable,<span class="literal">NULL</span>) == AE_ERR) &#123;</div><div class="line">        serverPanic(</div><div class="line">            <span class="string">"Error registering the readable event for the module "</span></div><div class="line">            <span class="string">"blocked clients subsystem."</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果是以cluster模式初始化，那就加载cluster的配置</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">clusterInit</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">	<span class="comment">/* Lock the cluster config file to make sure every node uses</span></div><div class="line">	* its own nodes.conf. */</div><div class="line">	<span class="keyword">if</span> (clusterLockConfig(server.cluster_configfile) == C_ERR)</div><div class="line">	    <span class="built_in">exit</span>(<span class="number">1</span>);</div><div class="line"></div><div class="line">	<span class="comment">/* Load or create a new nodes configuration. */</span></div><div class="line">	<span class="keyword">if</span> (clusterLoadConfig(server.cluster_configfile) == C_ERR) &#123;</div><div class="line">	    <span class="comment">/* No configuration found. We will just use the random name provided</span></div><div class="line">	     * by the createClusterNode() function. */</div><div class="line">	    myself = server.cluster-&gt;myself =</div><div class="line">	        createClusterNode(<span class="literal">NULL</span>,CLUSTER_NODE_MYSELF|CLUSTER_NODE_MASTER);</div><div class="line">	    serverLog(LL_NOTICE,<span class="string">"No cluster configuration found, I'm %.40s"</span>,</div><div class="line">	        myself-&gt;name);</div><div class="line">	    clusterAddNode(myself);</div><div class="line">	    saveconf = <span class="number">1</span>;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Initialize the slow log. This function should be called a single time</span></div><div class="line"> * at server startup. */</div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">slowlogInit</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">    server.slowlog = listCreate(); <span class="comment">// server维持的slowlog，slowlog命令有助于排查线上以及redis的系统资源问题，可以充分利用</span></div><div class="line">    server.slowlog_entry_id = <span class="number">0</span>;</div><div class="line">    listSetFreeMethod(server.slowlog,slowlogFreeEntry);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>5.AOF/RDB load</p>
+</blockquote>
+<p>为什么AOF和RDB这个会拿出来单独说一下呢，这是由于redis的数据备份是一个很重要的环节，这个是区别于memcache的一个重要特性，redis在启动的时候就从磁盘加载AOF文件或者<br>loadRDB的追加，开始恢复数据</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// server.c文件</span></div><div class="line"><span class="comment">/* Function called at startup to load RDB or AOF file in memory. */</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">loadDataFromDisk</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">    <span class="keyword">long</span> <span class="keyword">long</span> start = ustime();</div><div class="line">    <span class="keyword">if</span> (server.aof_state == AOF_ON) &#123; <span class="comment">// load AOF文件</span></div><div class="line">        <span class="keyword">if</span> (loadAppendOnlyFile(server.aof_filename) == C_OK)</div><div class="line">            serverLog(LL_NOTICE,<span class="string">"DB loaded from append only file: %.3f seconds"</span>,(<span class="keyword">float</span>)(ustime()-start)/<span class="number">1000000</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123; <span class="comment">// 加载RDB文件</span></div><div class="line">        rdbSaveInfo rsi = RDB_SAVE_INFO_INIT;</div><div class="line">        <span class="keyword">if</span> (rdbLoad(server.rdb_filename,&amp;rsi) == C_OK) &#123;</div><div class="line">            serverLog(LL_NOTICE,<span class="string">"DB loaded from disk: %.3f seconds"</span>,</div><div class="line">                (<span class="keyword">float</span>)(ustime()-start)/<span class="number">1000000</span>);</div><div class="line">                <span class="comment">// ...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>6.Enable Cluster</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (server.cluster_enabled) &#123; <span class="comment">// cluster模式</span></div><div class="line">    <span class="keyword">if</span> (verifyClusterConfigWithData() == C_ERR) &#123; <span class="comment">// 验证cluster模式的相关配置</span></div><div class="line">        serverLog(LL_WARNING,</div><div class="line">            <span class="string">"You can't have keys in a DB different than DB 0 when in "</span></div><div class="line">            <span class="string">"Cluster mode. Exiting."</span>);</div><div class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>7.aeSetBeforeSleepProc</p>
+</blockquote>
+<p>该函数作用和Redis的事件循环处理器有很大关系，让我们回头看一下initServer的时候，注册上去的事件循环处理aeCreateEventLoop(), 这个aeSetBeforeSleepProc就是在<br>进入事件循环之前调用函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function">aeEventLoop *<span class="title">aeCreateEventLoop</span><span class="params">(<span class="keyword">int</span> setsize)</span> </span>&#123; <span class="comment">// 初始化事件处理器状态</span></div><div class="line">    aeEventLoop *eventLoop;</div><div class="line">    <span class="keyword">int</span> i;</div><div class="line"></div><div class="line">    <span class="comment">// 创建事件状态结构</span></div><div class="line">    <span class="keyword">if</span> ((eventLoop = zmalloc(<span class="keyword">sizeof</span>(*eventLoop))) == <span class="literal">NULL</span>) <span class="keyword">goto</span> err;</div><div class="line"></div><div class="line">    <span class="comment">// 初始化文件事件结构和已就绪文件事件结构数组</span></div><div class="line">    eventLoop-&gt;events = zmalloc(<span class="keyword">sizeof</span>(aeFileEvent)*setsize);</div><div class="line">    eventLoop-&gt;fired = zmalloc(<span class="keyword">sizeof</span>(aeFiredEvent)*setsize);</div><div class="line">    <span class="comment">// ...</span></div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<blockquote>
+<p>8.aeMain</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">aeMain</span><span class="params">(aeEventLoop *eventLoop)</span> </span>&#123; <span class="comment">// 事件处理器的主循环</span></div><div class="line">    eventLoop-&gt;stop = <span class="number">0</span>;</div><div class="line">    <span class="keyword">while</span> (!eventLoop-&gt;stop) &#123;</div><div class="line">        <span class="keyword">if</span> (eventLoop-&gt;beforesleep != <span class="literal">NULL</span>)</div><div class="line">            eventLoop-&gt;beforesleep(eventLoop); <span class="comment">// 事件处理器之前需要处理，调用它</span></div><div class="line">        aeProcessEvents(eventLoop, AE_ALL_EVENTS|AE_CALL_AFTER_SLEEP); <span class="comment">// 开始处理</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>事件处理器以及event模型，我们留着下次分享，这里我们只要知道，这个事件模型包括I/O和文件处理，Redis利用套接字转发到对应的处理器上来处理客户端的请求和查询命令。</p>
+<blockquote>
+<p>9.aeDeleteEventLoop</p>
+</blockquote>
+<p>服务器关闭，停止事件循环</p>
+<p><br></p>
+<hr>
+
+
+
+
+
 <blockquote>
 <p>Redis的key删除</p>
-<p>Redis的Event模型</p>
+<p>Redis的锁</p>
 <p>lua脚本的应用</p>
 </blockquote>
 
@@ -809,115 +1171,6 @@
 
 
   
-    <article id="post-NDC" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/08/25/NDC/">NDC</a>
-    </h1>
-  
-
-        
-        <a href="/2018/08/25/NDC/" class="archive-article-date">
-  	<time datetime="2018-08-24T17:00:40.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-08-24</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/08/25/NDC/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
-    <article id="post-DDD领域模型" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/08/23/DDD领域模型/">DDD领域模型</a>
-    </h1>
-  
-
-        
-        <a href="/2018/08/23/DDD领域模型/" class="archive-article-date">
-  	<time datetime="2018-08-23T09:52:43.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-08-23</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>DDD领域模型</p>
-</blockquote>
-<p>想强调的一点是，DDD中的Repository的规约，即Specification明确指出了在ORM层映射数据的时候不需要增加过多的业务逻辑，能把规约向下传递，而不是渗透过多的逻辑到ORM层。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">-DDD -领域模型</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/08/23/DDD领域模型/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-
-
-
-
-  
   
     <nav id="page-nav">
       <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
@@ -1026,10 +1279,6 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">java</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
@@ -1042,7 +1291,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
+                <a href="javascript:void(0)" class="js-tag color5">java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1050,7 +1303,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">服务端</a>
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1059,14 +1312,6 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">Jvm</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">redis</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1079,6 +1324,14 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">锁</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">redis</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1098,6 +1351,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">Netty</a>
               </li>
              
@@ -1106,11 +1363,7 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+                <a href="javascript:void(0)" class="js-tag color1">-- FIND FC</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1123,6 +1376,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">Java服务端</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
               </li>
              
               <li class="article-tag-list-item">
