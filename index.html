@@ -271,77 +271,188 @@
 
 <blockquote>
 <p>dubbo</p>
+</blockquote>
+<p>client -&gt; request -&gt; cache -&gt; 序列化 -&gt; netty -&gt; server -&gt; invoker -&gt; result -&gt; netty -&gt; client watcher -&gt; callback -&gt; notify result</p>
+<p>流程是：</p>
+<ol>
+<li>server先注册到zk上</li>
+<li>server启动，加载相关配置，流控配置和线程池相关资源，以及load资源代理类，</li>
+<li>client也连接到zk</li>
+<li>client应用启动，获取server的注册以及调用链路信息，spring起来的时候，增加代理类，ClientProxy和InvocationHandler, 按照协议的序列化方式，以及server的路由地址，创建好map对应的代理类</li>
+<li>client开始调用，通过拿到对应server的路由，且负载均衡，找到对应的server上，通过底层的网络代理监听</li>
+<li>请求到达server，所有请求都会经过代理类，找到实际的bean, filter -&gt; invoke, 之后会记录流控的数据和全链路的监控数据的上报RPCContext的上下文</li>
+</ol>
+<blockquote>
 <p>netty</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>thrift</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>GPRC</p>
+</blockquote>
+<p><a href="https://www.jianshu.com/p/67c541a421f9" target="_blank" rel="external">GRPC介绍</a><br><a href="https://hpbn.co/http2/" target="_blank" rel="external">HTTP2的介绍</a><br><a href="https://imququ.com/post/header-compression-in-http2.html" target="_blank" rel="external">HTTP2的Header压缩算法</a></p>
+<blockquote>
 <p>序列化协议</p>
 </blockquote>
 <h3> 4. 框架 </h3> 
 
 <blockquote>
 <p>Spring </p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>SpringBoot</p>
+</blockquote>
+<p><a href="https://www.cnblogs.com/shamo89/p/8184960.html" target="_blank" rel="external">SpringBoot执行顺序和原理</a></p>
+<blockquote>
 <p>Mybatis</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>SpringCloud</p>
 </blockquote>
+<p><a href="https://blog.csdn.net/xlgen157387/article/details/77773908" target="_blank" rel="external">SpringCloud全家桶</a></p>
 <h3> 5. 中间件 </h3> 
 
 <blockquote>
 <p>DDB</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>MQ(RabbitMQ, Kafka, Nydus, RocketMQ)</p>
+</blockquote>
+<p><a href="https://www.cnblogs.com/dwlsxj/p/RabbitMQ.html" target="_blank" rel="external">RabbitMQ介绍</a><br><a href="https://www.cnblogs.com/xiapu5150/p/9927323.html" target="_blank" rel="external">消息中间件的对比</a><br><a href="https://blog.csdn.net/belvine/article/details/80842240" target="_blank" rel="external">消息中间件的性能对比</a></p>
+<p>RocketMQ的顺序消费的时候，reblance分为广播模式（本地文件的消费记录）和集群模式（broke的消费记录）<br><a href="https://www.jianshu.com/p/453c6e7ff81c" target="_blank" rel="external">RocketMQ介绍</a></p>
+<blockquote>
 <p>ZK</p>
+</blockquote>
+<p><a href="https://blog.csdn.net/kenan2012/article/details/80781594" target="_blank" rel="external">ZK脑裂的解决方案</a></p>
+<blockquote>
 <p>Trace</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>Batch</p>
+</blockquote>
+<p>网关层的分发（依赖于RPC框架），流量调度（机房调度）以及熔断机制</p>
+<blockquote>
 <p>Mlog</p>
+</blockquote>
+<p>RingBuffer的设计，用空间换时间，统一的文件收集和处理</p>
+<blockquote>
 <p>Kschedule(调度中心，数据分片)</p>
+</blockquote>
+<p>zk抢锁，watcher客户端调度</p>
+<blockquote>
 <p>配置中心</p>
+</blockquote>
+<p>定时轮训以及客户端的polling处理，subscribe信息的订阅以及处理</p>
+<blockquote>
 <p>Hytrix</p>
 </blockquote>
+<p>做降级的处理，不同资源的threadPool的隔离，熔断机制<br><a href="https://www.cnblogs.com/yepei/p/7169127.html" target="_blank" rel="external">Hytrix机制</a></p>
 <h3> 6. 大数据平台/大数据相关数据库 </h3>
 
 <blockquote>
 <p>Hadoop</p>
+</blockquote>
+<p>hdfs, mapReduce</p>
+<blockquote>
 <p>FLink</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>TiDB </p>
 </blockquote>
 <h3> 7. 搜索 </h3> 
 
 <blockquote>
 <p>Ndir</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>Lucene</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>ES</p>
 </blockquote>
+<p><a href="https://www.cnblogs.com/guguli/p/5218297.html" target="_blank" rel="external">ES的优化</a></p>
 <h3> 8. 分布式系统 </h3> 
 
 <blockquote>
 <p>降级</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>熔断</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>限流</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>管控平台</p>
+</blockquote>
+<p>.</p>
+<blockquote>
+<p>服务治理</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>容器化, 部署云, SAAS, PAAS</p>
 </blockquote>
 <h3> 9. 网络相关 </h3> 
 
 <blockquote>
 <p>TCP/IP</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>HTTP/HTTPS</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>SSL</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>CSRF</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>Nginx, 跨域</p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>Keep-alive</p>
 </blockquote>
-<h3> 10. Java基础 </h3> 
+<h3> 10. Java基础 </h3>
 
 <blockquote>
-<p>基础</p>
+<p>基础 (Java动态代理)</p>
+</blockquote>
+<p><a href="https://www.cnblogs.com/xiaoluo501395377/p/3383130.html" target="_blank" rel="external">Java动态代理</a><br><a href="https://www.cnblogs.com/gonjan-blog/p/6685611.html" target="_blank" rel="external">Java动态代理</a></p>
+<blockquote>
 <p>JVM </p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>GC </p>
+</blockquote>
+<p>.</p>
+<blockquote>
 <p>类加载</p>
 </blockquote>
 <h3> 11. 数据结构 </h3> 
 
 <h3> 12. 开源框架/代码阅读 </h3> 
 
+<p>(Spring-retry)[<a href="https://blog.csdn.net/xiaolyuh123/article/details/80209815" target="_blank" rel="external">https://blog.csdn.net/xiaolyuh123/article/details/80209815</a>]</p>
 <h3> 13. 架构设计 </h3> 
 
 <h3> 14. 项目经验 </h3> 
@@ -362,6 +473,34 @@
 <p>maven</p>
 <p>ant </p>
 </blockquote>
+<h3> 18. 稳定性/优化 </h3> 
+
+<ol>
+<li><p>稳定性要考虑的要素</p>
+<ul>
+<li>监控（Java异常监控，业务监控，报警处理）</li>
+<li>服务治理（RPC服务治理，网关服务治理，统一降级熔断）</li>
+<li>容灾（异地多活，同城多机房，多机房部署）</li>
+<li>隔离（DB隔离，应用隔离，服务拆分）</li>
+<li>多备（DB多备，缓存多备，消息中间件备份，Hbase备份，Redis主备）</li>
+<li>安全（DDOS，防爬，防刷）</li>
+</ul>
+</li>
+<li><p>现状和规划</p>
+</li>
+<li><p>实际案例</p>
+<ul>
+<li>DJ Disruptor</li>
+<li>DJ Hytrix</li>
+<li>RPC 线程池之间的隔离</li>
+<li>SLO异常优化方案</li>
+<li>Hbase的优化，数据倾斜</li>
+<li>Redis的优化（sentinel -&gt; cluster）,数据一致性hash</li>
+<li>降级/熔断/限流</li>
+<li>具体的业务优化场景</li>
+</ul>
+</li>
+</ol>
 
       
 
@@ -1279,6 +1418,10 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Java</a>
               </li>
              
@@ -1291,10 +1434,6 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">java</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">服务端</a>
               </li>
              
@@ -1303,11 +1442,11 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
+                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">-Java -并发编程</a>
+                <a href="javascript:void(0)" class="js-tag color4">JDK</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1319,19 +1458,19 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">JAVA</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">锁</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">redis</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">JAVA</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">锁</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1351,15 +1490,15 @@ return o(t,i(n),arguments.length<3?void 0:u(arguments[2]))}})},function(t,n,r){v
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">spring</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">Netty</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">TOC/IP</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">spring</a>
               </li>
              
               <li class="article-tag-list-item">
